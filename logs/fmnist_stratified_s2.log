@@ -1,0 +1,9 @@
+[fmnist_stratified_s2] step 0 heldout 1.28920 ema 1.28920 t=0s
+[fmnist_stratified_s2] step 100 heldout 0.14738 ema 1.18303 t=302s
+[fmnist_stratified_s2] step 200 heldout 0.08771 ema 0.97325 t=601s
+[fmnist_stratified_s2] step 300 heldout 0.07365 ema 0.76069 t=901s
+[fmnist_stratified_s2] step 400 heldout 0.06727 ema 0.57164 t=1206s
+[fmnist_stratified_s2] step 500 heldout 0.06437 ema 0.42003 t=1508s
+[fmnist_stratified_s2] step 600 heldout 0.06141 ema 0.30945 t=1805s
+[fmnist_stratified_s2] step 700 heldout 0.05925 ema 0.23379 t=2088s
+[fmnist_stratified_s2] step 800 heldout 0.05752 ema 0.18389 t=2385s

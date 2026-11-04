@@ -10,23 +10,27 @@
 \end{figure}
 
 \paragraph{Gradient variance (Fig.~\ref{fig:var}, Table~\ref{tab:var}).}
-\emph{Stratification works, but the gain is small.} On CIFAR-10, stratified timesteps give a variance ratio of
-\StratVR\ at step 3000 (mean $\pm$ sd over 3 seeds) and \StratVRmin--\StratVRmax\ across all probes; the ratio is
-below 1 in \StratVRbelow\ probes. Scrambled
-Sobol timesteps behave the same (\SobolVR, \SobolVRbelow), as expected in one dimension (H1). The gain is
-bounded by the between-timestep share of the variance, which is only \DecT\% (\S\ref{sec:where}).
-\emph{Antithetic noise does not reduce variance at equal compute.} Its ratio is \AntiVR\ at step 3000 and
-\AntiVRmin--\AntiVRmax\ over all probes (below 1 in \AntiVRbelow). The paired-i.i.d.\ control, which differs from
-antithetic sampling only in the sign coupling, is far worse (\PairedVR), so the coupling works as intended.
-What antithetic sampling cancels is roughly what it loses by sharing $(x_0,t)$ within a pair.
-\emph{Importance sampling helps early and hurts late.} The loss-based proposal halves the variance at the first
-probe (minimum ratio \ImpVRmin) but reaches \ImpVRmax\ by the end. Stratifying the IS uniforms stabilises it
-(\ISSVR\ at step 3000; below 1 in \ISSVRbelow\ probes). On Fashion-MNIST, stratification, Sobol and
-antithetic sampling behave the same way (\FStratVRmin--\FStratVRmax, \FSobolVRmin--\FSobolVRmax\ and
-\FAntiVRmin--\FAntiVRmax). Importance sampling, however, reduces variance at every probe there
-(\FImpVRmin--\FImpVRmax). Its late-training reversal is therefore specific to CIFAR-10 in our data, and the
-800-step Fashion-MNIST runs may simply end before the proposal drifts. The unbiasedness check passes for every estimator
-(\S\ref{sec:setup}).
+Single probes are noisy (\S\ref{sec:probenoise}), so we summarise each estimator by the geometric mean of its
+ratio over all independent probes (seeds $\times$ checkpoints), with a 95\% $t$-interval on the log scale and a
+sign test of ``ratio $<1$''.
+\emph{Stratification works, but the gain is small.} On CIFAR-10, stratified timesteps give \StratVRall\
+\StratVRci, and every probe is below 1 (\StratVRbelow, sign test $p=\StratVRsign$). Scrambled Sobol
+timesteps are indistinguishable (\SobolVRall\ \SobolVRci), as expected in one dimension (H1). The gain is
+bounded by the between-timestep share of the variance, only \DecT\% (\S\ref{sec:where}).
+\emph{Antithetic noise does not reduce variance at equal compute.} On CIFAR-10 its ratio is \AntiVRall\
+\AntiVRci\ (above 1 in most probes, but not significantly: sign test $p=\AntiVRsign$). On Fashion-MNIST it is
+significantly worse, \FAntiVRall\ \FAntiVRci. The coupling itself works: antithetic beats its paired-i.i.d.
+control, which differs only in the sign coupling, in \AntiBeatsPaired\ CIFAR-10 probes and
+\FAntiBeatsPaired\ Fashion-MNIST probes (paired i.i.d.: \PairedVRall\ \PairedVRci). What antithetic sampling
+cancels is roughly what it loses by sharing $(x_0,t)$ within a pair.
+\emph{Importance sampling depends on the training phase.} On CIFAR-10 the loss-based proposal ranges from
+\ImpVRmin\ (first probe) to \ImpVRmax\ (step 3000), with geometric mean \ImpVRall\ \ImpVRci. Pushing
+stratified uniforms through the IS inverse CDF is the best timestep-only estimator we probed: \ISSVRall\
+\ISSVRci\ on CIFAR-10 and \FISSVRall\ \FISSVRci\ on Fashion-MNIST. On Fashion-MNIST plain IS reduces
+variance at every probe (\FImpVRall\ \FImpVRci), so the late-training reversal is specific to CIFAR-10 in our
+data; the 800-step Fashion-MNIST runs may end before the proposal drifts. Stratified $t$ with antithetic $\epsilon$
+lands near 1 on both datasets (\SAVRall\ \SAVRci; \FSAVRall\ \FSAVRci). The unbiasedness check passes for every
+estimator (\S\ref{sec:setup}).
 
 \begin{table}[t]
   \centering\small
@@ -63,6 +67,30 @@ $q\propto\sqrt{\mathbb E[\ell^2\mid t]}$ inherits the loss's $\approx$\LossRange
 proposal therefore over-samples small $t$ and gives large weights to the rest. The gradient-optimal proposal
 $q^\star$ would give a predicted ratio of \Decoracle\ on CIFAR-10 (\FDecoracle\ on Fashion-MNIST), the largest
 reduction available from any timestep-only method here. This is a prediction, not a trained result.
+
+\paragraph{Probe noise and a direct test of the oracle proposal (post hoc, CPU).}
+\label{sec:probenoise}
+This analysis was added during self-review and was not pre-registered. On \PHn\ saved Fashion-MNIST
+checkpoints (uniform runs, final step) we re-ran the probe \PHrep\ times with independent probe seeds
+($R=\PHR$) and recomputed the decomposition with 8 repetitions instead of 3 (Table~\ref{tab:posthoc}). The
+spread across repeats at \emph{fixed} parameters is large: the median coefficient of variation of a single
+ratio is \PHcv\% (maximum \PHcvmax\%). Single-probe ratios, including the in-run ones, should therefore be
+read only in aggregate, as above. At the same checkpoints we also probed importance sampling with the
+gradient-norm proposal $q^\star\propto\sqrt{\mathbb E\|g\|^2\mid t}$, estimated from the 8-repetition
+decomposition. Because $q^\star$ is estimated at the same parameters it is tested on, this is an oracle. Its
+measured ratio is \PHOracle\ (range over checkpoints \PHOraclemin--\PHOraclemax; predicted
+\PHOraclePred), against \PHImp\ for the loss-based proposal and \PHStrat\ for stratification. The
+gradient-aware proposal is therefore a real, large variance reduction at fixed $\theta$. Whether an online
+estimate of it improves \emph{training} remains untested.
+
+\begin{table}[t]
+  \centering\small
+  \caption{\textbf{Post-hoc re-probes at fixed parameters} (Fashion-MNIST, final checkpoints, CPU). Variance ratio
+  vs.\ uniform: mean $\pm$ sd over \PHrep\ independent probe seeds ($R=\PHR$ each). Last column: prediction from
+  the 8-repetition decomposition at the same checkpoint.}
+  \label{tab:posthoc}
+  \input{tables/posthoc.tex}
+\end{table}
 
 \begin{table}[t]
   \centering\small
@@ -119,7 +147,13 @@ timestep, even though the gradient estimator is unbiased.
 \emph{Overhead is negligible.} All estimators run at \UnifMS--\ImpMS\ ms/step (within $\pm$3\% of
 uniform, inside timing noise), so loss vs wall-clock and loss vs steps are the same comparison.
 
-\paragraph{Fashion-MNIST.} The CPU runs (\FSteps\ steps, 3 seeds) show the same pattern. Held-out loss
-($\times10^{-3}$) is \FUnifHO\ (uniform), \FStratHO\ (stratified), \FAntiHO\ (antithetic), \FSAHO\ (strat+anti)
-and \FImpHO\ (importance), with pre-registered $p$-values \FStratpHO, \FAntipHO, \FSApHO\ and \FImppHO. The
-table is in Appendix~\ref{app:fmnist}.
+\paragraph{Fashion-MNIST.} The CPU runs (\FSteps\ steps, 3 seeds; Appendix~\ref{app:fmnist}) agree with
+CIFAR-10 for stratification and antithetic noise. Held-out loss ($\times10^{-3}$) is \FUnifHO\ (uniform),
+\FStratHO\ (stratified, $p=\FStratpHO$), \FAntiHO\ (antithetic, $p=\FAntipHO$) and \FSAHO\ (strat+anti,
+$p=\FSApHO$). Importance sampling, which reduces gradient variance at every Fashion-MNIST probe, gives the one
+nominally significant result of the study: \FImpHO, $p=\FImppHO$ (Welch); paired by seed
+\FImpHOpair\%, $p=\FImppHOpair$. Two caveats. It does not survive a Bonferroni correction over the four
+comparisons per dataset ($\alpha=0.0125$). And our pre-registered criterion for ``helps training'' also
+required an FID improvement, which is not available for Fashion-MNIST. Taken together with the same direction
+on CIFAR-10 ($p=\ImppHO$), it is consistent, but not conclusive, evidence that loss-based importance sampling
+improves the held-out loss by 1.5--3\% at equal steps in short training runs.

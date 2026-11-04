@@ -4,6 +4,8 @@ The law-of-total-variance decomposition explains why. The DDPM gradient's varian
 noise \emph{within} a timestep, not by the choice of timestep, which caps what stratification can achieve. Antithetic
 noise cancels the noise term efficiently, but pays for it by halving the number of distinct images. The finance
 lesson that transfers is diagnostic: measure the variance components first, then choose the estimator. The
-most promising direction the measurements point to is a gradient-norm-based importance proposal, predicted to
-cut variance by $\approx$\Decoracle$\times$, combined with stratification. That is a conjecture to test at larger
+most promising direction the measurements point to is a gradient-norm-based importance proposal, measured
+post hoc at $\approx$\PHOracle$\times$ the baseline variance at fixed parameters, combined with stratification.
+The only training-outcome signal, a 1.5--3\% held-out-loss gain from loss-based importance sampling, is
+consistent across both datasets but not conclusive. That is a conjecture to test at larger
 scale and with more seeds.

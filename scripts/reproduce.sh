@@ -13,6 +13,8 @@ case "${1:-paper}" in
     python scripts/collect_runs.py
     python scripts/make_tables.py
     python scripts/make_numbers.py
+    python scripts/make_posthoc.py
+    python scripts/update_readme.py
     python scripts/make_figures.py
     (cd paper && latexmk -pdf -interaction=nonstopmode paper.tex >/dev/null && echo "paper/paper.pdf built")
     ;;

@@ -8,3 +8,4 @@
 [fmnist_uniform_s2] step 600 heldout 0.06092 ema 0.31099 t=1844s
 [fmnist_uniform_s2] step 700 heldout 0.05952 ema 0.23556 t=2138s
 [fmnist_uniform_s2] step 800 heldout 0.05765 ema 0.18554 t=2437s
+[fmnist_uniform_s2] probe@800: uniform=1.000 antithetic=1.384 paired_iid=2.219 stratified=0.914 sobol=0.743 importance=0.605 is_strat=0.715 strat_anti=1.180

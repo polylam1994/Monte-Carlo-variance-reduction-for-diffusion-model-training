@@ -79,7 +79,7 @@ def var_table():
             S[ds][e]["all_below_1"] = bool(all(r < 1 for _, _, r in vr[e]))
             S[ds][e]["n"] = len(vr[e])
         per[ds] = steps
-    head = ["Estimator"] + [f"{ds} @{st}" for ds in dss for st in per[ds]]
+    head = ["Estimator"] + [f"{ds} @{st}" for ds in dss for st in per[ds]] + [f"{ds} geo-mean [95\\% CI]" for ds in dss]
     for e in PROBED:
         if e == "uniform":
             continue
@@ -88,6 +88,13 @@ def var_table():
             for st in per[ds]:
                 m, s = S[ds].get(e, {}).get(str(st), (np.nan, np.nan))
                 cells.append(fmt(m, s, 2))
+        for ds in dss:
+            allr = [r for st in per[ds] for r in S[ds].get(e, {}).get("_all", [])] if False else None
+            vr_ = var_ratios([r for r in runs(ds) if r["probes"]]).get(e, [])
+            lr = np.log([r for _, _, r in vr_])
+            from scipy import stats as _st
+            h = _st.t.ppf(0.975, len(lr) - 1) * lr.std(ddof=1) / np.sqrt(len(lr))
+            cells.append(f"{np.exp(lr.mean()):.2f} [{np.exp(lr.mean() - h):.2f}, {np.exp(lr.mean() + h):.2f}]")
         lines.append(" & ".join(cells) + r" \\")
     tex = ("\\begin{tabular}{l" + "r" * (len(head) - 1) + "}\n\\toprule\n" + " & ".join(head) + r" \\" +
            "\n\\midrule\n" + "\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")

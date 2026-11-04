@@ -84,6 +84,18 @@ for ds, pre in DS.items():
             M[t + "VRall"] = f"{np.exp(np.mean(np.log(allr))):.2f}"   # geometric mean over all probes
             M[t + "VRmin"], M[t + "VRmax"] = f"{min(allr):.2f}", f"{max(allr):.2f}"
             M[t + "VRbelow"] = f"{sum(r < 1 for r in allr)}/{len(allr)}"
+            # robust summary over independent probes (different seeds/checkpoints/probe RNG): geometric mean with a
+            # 95% t-interval on log ratios, and a two-sided sign test of "ratio < 1"
+            from scipy import stats as _st
+            lr = np.log(allr); k = len(lr)
+            half = _st.t.ppf(0.975, k - 1) * lr.std(ddof=1) / np.sqrt(k) if k > 1 else np.nan
+            M[t + "VRci"] = f"[{np.exp(lr.mean() - half):.2f}, {np.exp(lr.mean() + half):.2f}]"
+            M[t + "VRsign"] = p_str(float(_st.binomtest(int(sum(r < 1 for r in allr)), k, 0.5).pvalue))
+        # antithetic vs its paired-i.i.d. control at the same probe
+        pa = {(s_, sd): r for s_, sd, r in vr.get("paired_iid", [])}
+        an = [(r, pa[(s_, sd)]) for s_, sd, r in vr.get("antithetic", []) if (s_, sd) in pa]
+        if an:
+            M[pre + "AntiBeatsPaired"] = f"{sum(a < b for a, b in an)}/{len(an)}"
         ub = [v["dist2_to_uniform_mean"] / v["dist2_expected_if_unbiased"] for r in runs(ds) for p in r["probes"]
               for k, v in p["res"].items() if k != "uniform"]
         M[pre + "UnbiasN"], M[pre + "UnbiasMean"] = str(len(ub)), f"{np.mean(ub):.2f}"

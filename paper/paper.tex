@@ -21,14 +21,18 @@ scrambled-Sobol timesteps, Improved-DDPM-style importance sampling of timesteps,
 antithetic noise. Only the $(x_0,t,\epsilon)$ estimator changes, and every step uses 128 evaluations. We
 measure gradient variance directly at fixed parameters and decompose it by the law of total variance into
 between-timestep, data and noise parts. On CIFAR-10 the between-timestep part is only \DecT\% of the total, so
-stratification removes little variance (variance ratio \StratVR\ at the final checkpoint, with no measurable
+stratification removes little variance (geometric-mean ratio \StratVRall\ \StratVRci, with no measurable
 overhead). Antithetic pairs are strongly anti-correlated (pooled $\rho=\Decrho$), but each pair shares one
-image and one timestep, and that cost outweighs the cancellation (ratio \AntiVR). The loss-based importance
+image and one timestep, and that cost cancels the gain (ratio \AntiVRall\ \AntiVRci\ on CIFAR-10, \FAntiVRall\
+on Fashion-MNIST). The loss-based importance
 proposal over-weights low-noise timesteps. On CIFAR-10 it reduces variance early in training but increases it
 later (ratio \ImpVRmin--\ImpVRmax\ across checkpoints); a gradient-norm oracle proposal is predicted to give \Decoracle.
-None of these variance changes produced a statistically significant improvement in held-out loss or FID after
-\Steps\ steps with 3 seeds. The decomposition predicts the sign of each effect before any training, which is
-the main practical result.
+On CIFAR-10 no estimator significantly changed held-out loss or FID after \Steps\ steps with 3 seeds (the
+detection limit is $\approx$\MDEho\% / \MDEfid\ FID). Importance sampling was best on both and nominally
+significant on Fashion-MNIST ($p=\FImppHO$, uncorrected), but not after correcting for multiple comparisons.
+Post-hoc probes show that a gradient-norm importance proposal would cut variance to $\approx$\PHOracle$\times$ at
+fixed parameters. The decomposition predicts the sign of each effect before any training, which is the main
+practical result.
 \end{abstract}
 
 \section{Introduction}
@@ -55,7 +59,10 @@ decomposition (Eq.~\ref{eq:decomp}) that \emph{predicts} each estimator's varian
 (3) a simple condition, $V_t+V_x<-\rho V_\epsilon$, for when antithetic noise can help, together with the
 measurement that it fails here;
 (4) evidence that the loss-based importance proposal is mismatched to the gradient: the loss varies by
-$\approx$\LossRange$\times$ across timesteps, but gradient second moments by only $\approx$\GradRange$\times$.
+$\approx$\LossRange$\times$ across timesteps, but gradient second moments by only $\approx$\GradRange$\times$. A
+gradient-norm proposal measured post hoc reduces variance to $\approx$\PHOracle$\times$;
+(5) a finding that matters for anyone measuring gradient variance: single probe estimates are very noisy
+(coefficient of variation $\approx$\PHcv\% at $R=24$), so claims must rest on many probes.
 All numbers in this report are generated from logged runs by scripts in the repository.
 
 \input{method_sections.tex}
