@@ -44,15 +44,15 @@ def main_table(ds):
                 "heldout_ema_final": mean_std(hoe), "p_heldout_vs_uniform": welch(ho, base_ho),
                 "steps": rs[0]["cfg"]["steps"]}
         cells = [LABEL[e], str(len(rs)), f"{np.mean(ms):.1f}", f"{S[e]['overhead_pct']:+.1f}\\%",
-                 fmt(*mean_std(ho), 4), pfmt(S[e]["p_heldout_vs_uniform"]) if e != "uniform" else "--"]
+                 fmt(*mean_std([1e3 * x for x in ho]), 2), pfmt(S[e]["p_heldout_vs_uniform"]) if e != "uniform" else "--"]
         if final_fid_step:
             fd = {st: [f["fid"] for r in rs for f in r["fid"] if f["step"] == st] for st in fid_steps}
             S[e]["fid"] = {str(st): mean_std(v) for st, v in fd.items() if v}
             S[e]["p_fid_final_vs_uniform"] = welch(fd[final_fid_step], base_fid)
-            cells += [fmt(*mean_std(fd[st]), 2) if fd[st] else "--" for st in fid_steps]
+            cells += [fmt(*mean_std(fd[st]), 1) if fd[st] else "--" for st in fid_steps]
             cells += [pfmt(S[e]["p_fid_final_vs_uniform"]) if e != "uniform" else "--"]
         rows.append(" & ".join(cells) + r" \\")
-    head = ["Estimator", "seeds", "ms/step", "overhead", "held-out loss", "$p$"]
+    head = ["Estimator", "seeds", "ms/step", "overhead", "held-out ($\\times 10^{-3}$)", "$p$"]
     if final_fid_step:
         head += [f"FID@{st}" for st in fid_steps] + ["$p$ (FID)"]
     tex = ("\\begin{tabular}{l" + "r" * (len(head) - 1) + "}\n\\toprule\n" + " & ".join(head) + r" \\" +

@@ -1,0 +1,77 @@
+\section{Background}
+\label{sec:background}
+
+\paragraph{The DDPM objective as a Monte Carlo integral.}
+With a fixed noise schedule $\bar\alpha_t$, $t\in\{0,\dots,T-1\}$, the $\epsilon$-prediction loss of
+\citet{ho2020ddpm} is
+\begin{equation}
+  \mathcal L(\theta)=\mathbb E_{x_0\sim p_{\text{data}},\,t\sim\mathcal U\{0..T-1\},\,\epsilon\sim\mathcal N(0,I)}
+  \big[\ell(\theta;x_0,t,\epsilon)\big],\qquad
+  \ell=\tfrac1d\big\|\hat\epsilon_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,\,t)-\epsilon\big\|^2 .
+  \label{eq:loss}
+\end{equation}
+Each optimiser step replaces $\nabla\mathcal L$ by an $N$-sample estimator
+$\hat g=\frac1N\sum_{i=1}^N w_i\,\nabla_\theta\ell(\theta;x_0^{(i)},t^{(i)},\epsilon^{(i)})$.
+The baseline draws all three inputs i.i.d.\ and sets $w_i=1$. Pricing a derivative by simulation has the
+same form: an expectation of a payoff over random paths, estimated from a finite sample. Computational
+finance has a standard set of tools for this \citep{glasserman2003}: antithetic variates \citep{boyle1977},
+stratification and quasi-Monte Carlo \citep{paskov1995}, importance sampling \citep{ghs1999} and control
+variates \citep{kemna1990}. All of them can be applied to $\hat g$ without changing
+$\mathbb E\hat g=\nabla\mathcal L$.
+
+\paragraph{Where the variance comes from.}
+Write $g=\nabla_\theta\ell(\theta;x_0,t,\epsilon)$ for a per-sample gradient and measure variance by the trace of
+the covariance, $\mathrm{V}(\cdot)=\mathbb E\|\cdot-\mathbb E\cdot\|^2$. The law of total variance splits it into three
+non-negative parts:
+\begin{equation}
+  \mathrm V(g)=\underbrace{\mathrm V_t\big(\mathbb E[g\mid t]\big)}_{V_t:\ \text{between timesteps}}
+  +\underbrace{\mathbb E_t\,\mathrm V_{x_0}\big(\mathbb E[g\mid x_0,t]\big)}_{V_x:\ \text{data, given }t}
+  +\underbrace{\mathbb E_{x_0,t}\,\mathrm V_\epsilon\big(g\mid x_0,t\big)}_{V_\epsilon:\ \text{noise}} .
+  \label{eq:decomp}
+\end{equation}
+Each technique below acts on a different term. This is the main analytical tool of the paper:
+by measuring $V_t$, $V_x$ and $V_\epsilon$ we can predict which technique can help before training.
+
+\section{Estimators}
+\label{sec:method}
+All estimators use exactly $N=128$ evaluations of $\ell$ per step (an antithetic pair counts as two), are unbiased for
+$\nabla\mathcal L$, and differ only in how $(x_0,t,\epsilon,w)$ are drawn.
+
+\paragraph{Stratified and quasi-Monte Carlo timesteps.}
+\texttt{stratified} draws $u_i=(i+U_i)/N$, $U_i\sim\mathcal U[0,1)$, one point per stratum, and sets
+$t_i=\lfloor Tu_i\rfloor$. Its variance is at most that of the baseline, because it removes the between-strata
+part of $V_t$: $\mathrm V(\hat g_{\text{strat}})\approx (V_x+V_\epsilon+V_t^{\text{within}})/N$.
+\texttt{sobol} uses consecutive points of a scrambled one-dimensional Sobol sequence. For $N=2^k$ each block of
+$N$ points is a $(0,k,1)$-net, so in one dimension it is essentially a stratified sample with a
+correlated scramble \citep{owen1997scrambled}, and we expect \texttt{sobol}$\approx$\texttt{stratified}.
+The ``low-discrepancy sampler'' of VDM \citep{kingma2021vdm} is a randomly shifted lattice from the same
+family.
+
+\paragraph{Antithetic noise.}
+\texttt{antithetic} draws $N/2$ triples $(x_0,t,\epsilon)$ and evaluates both $\epsilon$ and $-\epsilon$. With
+$\rho=\mathrm{Cov}(g(\epsilon),g(-\epsilon))/V_\epsilon$ (the trace correlation of the pair, given $x_0,t$),
+\begin{equation}
+  \mathrm V(\hat g_{\text{anti}})=\frac{2(V_t+V_x)+(1+\rho)V_\epsilon}{N}
+  \quad\text{vs.}\quad
+  \mathrm V(\hat g_{\text{unif}})=\frac{V_t+V_x+V_\epsilon}{N},
+  \label{eq:anti}
+\end{equation}
+so antithetic sampling helps if and only if $V_t+V_x<-\rho\,V_\epsilon$. In option pricing the pair shares
+nothing but the normal draw, and the condition reduces to the textbook $\rho<0$. Here the pair also
+shares $(x_0,t)$, so it pays for the cancellation with half as many distinct images and timesteps. If
+$\hat\epsilon_\theta$ were affine in $x_t$, $g$ would be affine in $\epsilon$ and $\rho=-1$: the odd part cancels
+exactly. The diagnostic estimator \texttt{paired\_iid} uses the same pairing with two independent
+$\epsilon$, so the gap between \texttt{paired\_iid} and \texttt{antithetic} isolates the effect of $\rho$.
+\texttt{strat\_anti} combines both ideas: the $N/2$ pair timesteps are stratified.
+
+\paragraph{Importance-sampled timesteps.}
+\texttt{importance} samples $t$ from a piecewise-constant proposal $q$ over 50 bins and reweights by
+$w=1/(Tq(t))$, which leaves $\mathcal L$ unchanged \citep{kingma2023understanding}. Following Improved DDPM
+\citep{nichol2021improved}, $q(t)\propto\sqrt{\mathbb E[\ell^2\mid t]}$, estimated from a 100-sample history per
+bin, used after every bin is filled, and mixed 90/10 with the uniform distribution so that $w\le 10$.
+This proposal minimises the variance of the \emph{loss} estimate. The proposal that minimises the
+trace of the \emph{gradient} covariance is instead $q^\star(t)\propto\sqrt{\mathbb E[\|g\|^2\mid t]}$
+(the same Cauchy--Schwarz argument, applied to $\|g\|$), and it can differ substantially. We report the
+predicted variance under $q^\star$ as an oracle and do not train with it. \texttt{is\_strat}
+pushes stratified uniforms through the inverse CDF of $q$ (as in CARV \citep{carv2026}); it is probed but
+not trained.

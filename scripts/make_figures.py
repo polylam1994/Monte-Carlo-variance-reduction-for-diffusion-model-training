@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from analysis import (COLOR, LABEL, LINESTYLE, MARKER, PROBED, ROOT, TRAINED, by_est, runs,  # noqa: E402
                       var_ratios)
 
+SHORT = {"uniform": "Uniform", "antithetic": "Anti", "stratified": "Strat", "importance": "IS", "strat_anti": "Strat+Anti"}
 OUT = os.path.join(ROOT, "paper", "figures")
 os.makedirs(OUT, exist_ok=True)
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
@@ -66,7 +67,7 @@ def fig_fid(ds="cifar10"):
         axes[1].errorbar([i], [m], yerr=[sd], color=COLOR[e], marker=MARKER[e], ms=5, capsize=3, lw=1.4)
         axes[1].scatter([i] * len(v), v, color=COLOR[e], s=8, alpha=0.5, zorder=3)
     axes[1].set_xticks(range(len(TRAINED)))
-    axes[1].set_xticklabels([LABEL[e].replace(" (baseline)", "").replace(" + ", "+\n") for e in TRAINED], fontsize=6.5)
+    axes[1].set_xticklabels([SHORT[e] for e in TRAINED], fontsize=7)
     n = len(g.get("uniform", []))
     axes[1].set_title(f"step {final}: mean ± sd over {n} seeds (dots = seeds)")
     fig.suptitle("CIFAR-10 FID (clean-fid, 10k samples, DDIM-25, same initial noise for all models)", fontsize=8.5, y=1.02)
@@ -74,26 +75,45 @@ def fig_fid(ds="cifar10"):
     save(fig, f"fid_vs_steps_{ds}")
 
 
+
+
 def fig_loss(ds):
     g = by_est(runs(ds))
-    if not g:
+    if "uniform" not in g:
         return
-    fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.4), sharey=True)
-    band(axes[0], g, "step", "heldout", "evals")
-    band(axes[1], g, "train_time", "heldout", "evals")
-    # wall-clock: x differs per seed, so plot each seed thinly instead of a band
-    axes[1].cla(); axes[1].grid(True)
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.4))
     for e in TRAINED:
         for i, r in enumerate(g.get(e, [])):
             ev = [x for x in r["evals"] if x["step"] > 0]
-            axes[1].plot([x["train_time"] for x in ev], [x["heldout"] for x in ev], color=COLOR[e],
-                         ls=LINESTYLE[e], lw=1.0, label=LABEL[e] if i == 0 else None)
-    for ax in axes:
+            kw = dict(color=COLOR[e], ls=LINESTYLE[e], lw=1.0, label=SHORT[e] if i == 0 else None)
+            axes[0].plot([x["step"] for x in ev], [x["heldout"] for x in ev], **kw)
+            axes[1].plot([x["train_time"] for x in ev], [x["heldout"] for x in ev], **kw)
+    for ax in axes[:2]:
         ax.set_yscale("log")
-    axes[0].set_xlabel("optimiser steps"); axes[1].set_xlabel("training wall-clock (s, excl. evaluation)")
-    axes[0].set_ylabel("held-out L_simple (CRN)")
-    axes[0].set_title(f"{ds}: held-out loss vs steps"); axes[1].set_title("vs wall-clock (each seed)")
-    axes[0].legend(frameon=False)
+    axes[0].set_xlabel("optimiser steps"); axes[1].set_xlabel("training wall-clock (s)")
+    axes[0].set_ylabel("held-out $L_{simple}$ (CRN)")
+    axes[0].set_title("vs steps (each seed)"); axes[1].set_title("vs wall-clock (each seed)")
+    axes[0].legend(frameon=False, fontsize=6.5)
+    # paired by seed (same initialisation and same evaluation noise): relative difference to uniform
+    base = {r["seed"]: {x["step"]: x["heldout"] for x in r["evals"]} for r in g["uniform"]}
+    for e in TRAINED[1:]:
+        rows = []
+        for r in g.get(e, []):
+            b0 = base.get(r["seed"])
+            if b0:
+                rows.append({x["step"]: 100 * (x["heldout"] / b0[x["step"]] - 1) for x in r["evals"] if x["step"] > 0})
+        if not rows:
+            continue
+        st = sorted(set.intersection(*[set(x) for x in rows]))
+        Y = np.array([[x[s_] for s_ in st] for x in rows])
+        m = Y.mean(0); sd = Y.std(0, ddof=1) if len(rows) > 1 else np.zeros_like(m)
+        axes[2].plot(st, m, color=COLOR[e], ls=LINESTYLE[e], marker=MARKER[e], ms=3, label=f"{SHORT[e]} (n={len(rows)})")
+        axes[2].fill_between(st, m - sd, m + sd, color=COLOR[e], alpha=0.12, lw=0)
+    axes[2].axhline(0, color=INK, lw=0.9)
+    axes[2].set_xlabel("optimiser steps"); axes[2].set_ylabel("% vs uniform, same seed")
+    axes[2].set_title("difference to uniform (mean ± sd)"); axes[2].legend(frameon=False, fontsize=6.5)
+    fig.suptitle({"fmnist": "Fashion-MNIST", "cifar10": "CIFAR-10"}[ds] + ": held-out loss", fontsize=8.5, y=1.03)
+    fig.tight_layout()
     save(fig, f"loss_curves_{ds}")
 
 

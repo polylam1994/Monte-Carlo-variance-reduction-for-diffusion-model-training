@@ -1,0 +1,42 @@
+\section{Experimental setup}
+\label{sec:setup}
+\paragraph{Model and training.} DDPM with $T=1000$, linear $\beta_t\in[10^{-4},0.02]$, $\epsilon$-prediction and the
+unweighted loss \eqref{eq:loss}. U-Net with residual blocks, GroupNorm, SiLU, sinusoidal time embedding and one
+self-attention layer at the lowest resolution. CIFAR-10 \citep{krizhevsky2009}: base width 32, multipliers
+$(1,2,2)$, two blocks per level, 1.54M parameters, random horizontal flips. Fashion-MNIST \citep{xiao2017fmnist}:
+width 32, multipliers $(1,2)$, one block per level, 0.63M parameters. Adam \citep{kingma2015adam}, learning
+rate $2\cdot10^{-4}$ with 200 warm-up steps, gradient clipping at 1, batch $N=128$, EMA 0.999 (with the standard
+warm-up on CIFAR-10), fp16 autocast on GPU. Everything except the estimator is identical across arms. For a
+given seed, every estimator starts from the same initialisation.
+
+\paragraph{Budget and equal compute.} We compare at an equal number of optimiser steps, which here also means an
+equal number of network evaluations: every step uses 128 forward/backward passes through the U-Net. CIFAR-10:
+3,000 steps per run (384k evaluations, $\approx$7.7 epochs) on one NVIDIA T4. Fashion-MNIST: 800 steps per run on
+a 4-core CPU. Three seeds (0, 1, 2) per configuration, fixed in advance; no run was dropped. The whole study
+used \GPUhours\ Kaggle GPU-hours of a 2-hour budget, including \GPUhoursLost\ GPU-hours lost to a failed data
+download (Appendix~\ref{app:budget}). This budget, not the method, is the main limitation of the study
+(\S\ref{sec:limitations}).
+
+\paragraph{Metrics.}
+(i) \emph{Gradient variance at fixed parameters.} Inside each baseline run, at fixed checkpoints, we freeze
+$\theta$ and draw $R=48$ independent mini-batch gradients from each of the eight estimators. $x_0$ is drawn from a
+fixed pool of 4,096 training images. We report $\mathrm{tr}\,\mathrm{Cov}(\hat g)$ relative to \texttt{uniform}
+at the same $\theta$. All estimators share the same checkpoints, so the ratio isolates the estimator. We also check
+unbiasedness: if two estimators have the same mean, $\mathbb E\|\bar g_e-\bar g_u\|^2=(\mathrm{tr}_e+\mathrm{tr}_u)/R$;
+across all \UnbiasN\ estimator--checkpoint pairs the observed ratio of the two sides has mean \UnbiasMean\
+(range \UnbiasMin--\UnbiasMax), so there is no sign of bias.
+(ii) \emph{Decomposition} \eqref{eq:decomp} in 20 timestep bins from paired mini-batches that share or
+resample $(x_0,t)$ and $\epsilon$, or flip the sign of $\epsilon$ (3 repetitions, $n=64$ per batch). It gives
+$V_t$, $V_x$, $V_\epsilon$ and the pooled $\rho$, which we plug into \eqref{eq:anti} to \emph{predict} each estimator's
+variance and compare with (i).
+(iii) \emph{Held-out loss} on 2,000 test images with common random numbers: the same $(x_0,t,\epsilon)$ for every
+model and checkpoint, the standard variance-reduction device for comparing simulated alternatives
+\citep{glasserman2003}.
+(iv) \emph{FID} \citep{heusel2017fid} with clean-fid \citep{parmar2022cleanfid}: 10k samples, deterministic DDIM
+\citep{song2021ddim} with 25 steps from the EMA weights, and the same initial noise for every model, against
+CIFAR-10 training statistics. FID is computed at steps 1k/2k/3k for seed 0 and at 3k for seeds 1--2, for budget
+reasons. Absolute values are high because the models are small and briefly trained; only differences are
+interpreted.
+(v) \emph{Overhead}: wall-clock per optimiser step, excluding evaluation.
+Differences are tested with two-sided Welch $t$-tests over seeds. With $n=3$ these tests have low power, so
+we also report effect sizes.

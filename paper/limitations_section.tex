@@ -1,0 +1,26 @@
+\begin{itemize}\setlength\itemsep{2pt}
+\item \textbf{Scale.} The models are small (1.5M / 0.6M parameters) and trained briefly (\Steps\ steps on CIFAR-10,
+\FSteps\ on Fashion-MNIST) because of the 2-GPU-hour budget. FIDs around 140 mean the models are far from
+converged. Gradient-noise effects may matter more, or less, late in training and at scale; we cannot tell
+which. The variance \emph{measurements}, in contrast, are exact statements about these estimators at these
+parameters.
+\item \textbf{Power.} Three seeds per arm detect only large effects. A non-significant difference is not evidence
+of equivalence. The effect sizes we report are small compared with seed-to-seed spread, but we cannot rule out
+effects of the order of one standard deviation.
+\item \textbf{FID protocol.} Because of the budget, FID was computed at three checkpoints for seed 0 and only at
+the final checkpoint for seeds 1--2 (PLAN amendment A4). We used DDIM-25 rather than DDIM-50, 10k rather than
+50k samples, and training-set statistics. All of these are fixed across arms, but they make the absolute values
+incomparable to the literature.
+\item \textbf{One optimiser, one weighting.} Everything uses Adam with $L_{\text{simple}}$. Adam's per-coordinate
+normalisation may absorb part of the benefit of lower gradient variance \citep{jeha2024taylor}. Other loss
+weightings (e.g.\ ELBO or Min-SNR \citep{hang2023minsnr}) change the per-timestep profile, and with it
+$V_t$, and could favour stratification or importance sampling more.
+\item \textbf{Importance proposal.} We trained only the Improved-DDPM loss-based proposal. The gradient-norm
+oracle is evaluated analytically from the decomposition, not trained. Its predicted gain is a conjecture until
+it is trained with an online estimate of $\mathbb E[\|g\|^2\mid t]$.
+\item \textbf{Decomposition noise.} Per-bin estimates use 3 repetitions of single mini-batch differences, so
+individual bins are noisy (single-bin $\rho$ can fall outside $[-1,1]$). We report ratio-of-sums pooled
+estimates. The predicted uniform-estimator variance matches the direct measurement to within a few percent
+on CIFAR-10 but less well on Fashion-MNIST (Table~\ref{tab:decomp}).
+\item \textbf{Control variates} (item 5 of the original brief) were not implemented.
+\end{itemize}

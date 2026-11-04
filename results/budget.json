@@ -22,6 +22,10 @@
   {
    "when": "after CIFAR-10 seeds 1-2 session (final; no further GPU use)",
    "time_used_s": 70658.24
+  },
+  {
+   "when": "after strat_anti seed-2 training-only session (FINAL; budget exhausted)",
+   "time_used_s": 70987.59
   }
  ],
  "lost_to_failed_download_s": 1512.57

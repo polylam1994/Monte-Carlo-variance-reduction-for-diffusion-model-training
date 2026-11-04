@@ -1,10 +1,43 @@
 {
- "results/raw/pilot": {"platform": "local-cpu"},
- "results/raw/fmnist": {"platform": "local-cpu"},
- "results/raw/smoke": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-smoke", "version": 2},
- "results/raw/cifar10": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seeds12", "version": 1},
- "results/raw/cifar10/cifar10_uniform_s0": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0", "version": 1},
- "results/raw/cifar10/cifar10_antithetic_s0": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0", "version": 1},
- "results/raw/cifar10/cifar10_stratified_s0": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0", "version": 1},
- "results/raw/cifar10/cifar10_importance_s0": {"platform": "kaggle", "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0", "version": 1}
+ "results/raw/pilot": {
+  "platform": "local-cpu"
+ },
+ "results/raw/fmnist": {
+  "platform": "local-cpu"
+ },
+ "results/raw/smoke": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-smoke",
+  "version": 2
+ },
+ "results/raw/cifar10": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seeds12",
+  "version": 1
+ },
+ "results/raw/cifar10/cifar10_uniform_s0": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0",
+  "version": 1
+ },
+ "results/raw/cifar10/cifar10_antithetic_s0": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0",
+  "version": 1
+ },
+ "results/raw/cifar10/cifar10_stratified_s0": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0",
+  "version": 1
+ },
+ "results/raw/cifar10/cifar10_importance_s0": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-seed0",
+  "version": 1
+ },
+ "results/raw/cifar10/cifar10_strat_anti_s2": {
+  "platform": "kaggle",
+  "url": "https://www.kaggle.com/code/dennislam1994/mcvr-cifar10-sa-s2",
+  "version": 1
+ }
 }

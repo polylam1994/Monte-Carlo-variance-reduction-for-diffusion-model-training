@@ -1,0 +1,11 @@
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+Estimator & seeds & ms/step & overhead & held-out ($\times 10^{-3}$) & $p$ & FID@1000 & FID@2000 & FID@3000 & $p$ (FID) \\
+\midrule
+Uniform (baseline) & 3 & 90.8 & +0.0\% & 37.50 $\pm$ 0.18 & -- & 271.7 & 191.1 & 141.0 $\pm$ 5.7 & -- \\
+Antithetic ε & 3 & 91.0 & +0.2\% & 37.75 $\pm$ 0.02 & 0.14 & 269.6 & 190.7 & 143.3 $\pm$ 3.0 & 0.58 \\
+Stratified t & 3 & 90.4 & -0.5\% & 37.70 $\pm$ 0.22 & 0.29 & 270.2 & 190.5 & 140.0 $\pm$ 2.8 & 0.80 \\
+Importance t & 3 & 92.2 & +1.5\% & 36.92 $\pm$ 0.32 & 0.07 & 269.1 & 184.8 & 135.3 $\pm$ 4.1 & 0.24 \\
+Stratified t + antithetic ε & 3 & 89.4 & -1.6\% & 37.65 $\pm$ 0.19 & 0.37 & 271.7 & 189.3 & 141.2 $\pm$ 3.7 & 0.96 \\
+\bottomrule
+\end{tabular}

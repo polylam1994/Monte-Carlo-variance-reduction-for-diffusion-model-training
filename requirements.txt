@@ -1,0 +1,15 @@
+# Local (CPU) environment used for Fashion-MNIST runs, figures and tables (Python 3.13)
+torch==2.15.0
+torchvision==0.29.2
+numpy==2.5.3
+scipy==1.18.1
+matplotlib==3.11.2
+pyyaml==6.0.3
+pandas==3.0.5
+# Kaggle GPU environment (recorded in results/raw/*/meta.json): Python 3.13.16, torch 2.11.0+cu130,
+# torchvision 0.26.0+cu130, plus the following installed by the kernel:
+clean-fid==0.1.35
+# needed only by scripts/prepare_cifar10.py (pre-installed on Kaggle):
+huggingface_hub
+pyarrow
+pillow

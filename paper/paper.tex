@@ -1,0 +1,80 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,booktabs,graphicx,xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\input{numbers.tex}
+\newcommand{\ttt}[1]{\texttt{#1}}
+\title{Monte Carlo Variance Reduction for Diffusion-Model Training:\\
+an Equal-Compute Comparison of Antithetic, Stratified and Importance Sampling}
+\author{Research project report (single author)\\\small Code, logs and every number: \url{https://github.com/polylam1994/Monte-Carlo-variance-reduction-for-diffusion-model-training}}
+\date{November 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The DDPM training loss is a Monte Carlo average over data, timesteps and Gaussian noise, so standard
+variance-reduction methods from computational finance apply directly. We test whether they help, at equal
+compute, in a single controlled codebase. The arms are antithetic noise pairs $(\epsilon,-\epsilon)$, stratified and
+scrambled-Sobol timesteps, Improved-DDPM-style importance sampling of timesteps, and stratified timesteps with
+antithetic noise. Only the $(x_0,t,\epsilon)$ estimator changes, and every step uses 128 evaluations. We
+measure gradient variance directly at fixed parameters and decompose it by the law of total variance into
+between-timestep, data and noise parts. On CIFAR-10 the between-timestep part is only \DecT\% of the total, so
+stratification removes little variance (variance ratio \StratVR\ at the final checkpoint, with no measurable
+overhead). Antithetic pairs are strongly anti-correlated (pooled $\rho=\Decrho$), but each pair shares one
+image and one timestep, and that cost outweighs the cancellation (ratio \AntiVR). The loss-based importance
+proposal over-weights low-noise timesteps. It reduces variance early in training but increases it later
+(ratio \ImpVRmin--\ImpVRmax\ across checkpoints); a gradient-norm oracle proposal would give \Decoracle.
+None of these variance changes produced a statistically significant improvement in held-out loss or FID after
+\Steps\ steps with 3 seeds. The decomposition predicts the sign of each effect before any training, which is
+the main practical result.
+\end{abstract}
+
+\section{Introduction}
+Pricing an option by simulation and training a diffusion model have the same structure. In both, an expectation
+over random inputs is replaced by a sample average, and the error of that average limits progress. In finance,
+decades of work have produced methods that cut that error at almost no extra cost
+\citep{glasserman2003,boyle1977,paskov1995,ghs1999}. Denoising score matching \citep{ho2020ddpm} is the same
+kind of average, over data, timesteps $t$ and noise $\epsilon$, and the gradient noise it injects into SGD is
+thought to slow training \citep{kim2025adaptive}. This report asks one concrete question: \emph{does
+plugging these classical estimators into DDPM training reduce gradient variance, and does that make training
+faster or better at equal compute?}
+
+\paragraph{What is and is not new.} Importance sampling of timesteps is established
+\citep{nichol2021improved,song2021mle,kim2025adaptive,sun2026variance}, and stratified or low-discrepancy
+timesteps are used in VDM \citep{kingma2021vdm} and CARV \citep{carv2026}. For these arms we replicate under
+controlled conditions. We did not find antithetic $\epsilon$-pairs inside the DDPM training estimator in
+prior work: antithetic noise has been used at sampling time \citep{antithetic2026}, and antithetic couplings for
+other gradient estimators \citep{ren2019antithetic}. The closest work on control variates for the DDPM gradient
+\citep{jeha2024taylor} found inconclusive effects on MNIST. Our contributions are:
+(1) an equal-compute comparison in one codebase where only the estimator changes, on Fashion-MNIST and CIFAR-10
+with three seeds;
+(2) direct measurement of gradient variance at identical parameters for eight estimators, with a law-of-total-variance
+decomposition (Eq.~\ref{eq:decomp}) that \emph{predicts} each estimator's variance;
+(3) a simple condition, $V_t+V_x<-\rho V_\epsilon$, for when antithetic noise can help, together with the
+measurement that it fails here;
+(4) evidence that the loss-based importance proposal is mismatched to the gradient: the loss varies by
+$\approx$\LossRange$\times$ across timesteps, but gradient second moments by only $\approx$\GradRange$\times$.
+All numbers in this report are generated from logged runs by scripts in the repository.
+
+\input{method_sections.tex}
+\input{setup_section.tex}
+
+\section{Results}
+\label{sec:results}
+\input{results_section.tex}
+
+\section{Limitations}
+\label{sec:limitations}
+\input{limitations_section.tex}
+
+\section{Conclusion}
+\input{conclusion_section.tex}
+
+\bibliographystyle{abbrvnat}
+\bibliography{references}
+
+\appendix
+\input{appendix_section.tex}
+\end{document}
