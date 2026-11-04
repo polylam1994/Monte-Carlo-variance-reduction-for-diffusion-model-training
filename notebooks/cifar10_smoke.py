@@ -334,9 +334,13 @@ def _fmnist(root, split):
 
 
 def _cifar10(root, split):
-    import torchvision
-    ds = torchvision.datasets.CIFAR10(root, train=(split == "train"), download=True)
-    return torch.from_numpy(ds.data).permute(0, 3, 1, 2).contiguous()
+    npz = os.path.join(root, f"cifar10_{split}.npz")  # written by scripts/prepare_cifar10.py
+    if os.path.exists(npz):
+        x = np.load(npz)["x"]
+    else:  # torchvision layout, see scripts/download_cifar10.py
+        import torchvision
+        x = torchvision.datasets.CIFAR10(root, train=(split == "train"), download=False).data
+    return torch.from_numpy(x).permute(0, 3, 1, 2).contiguous()
 
 
 def load(name, root, split, device):
@@ -762,7 +766,8 @@ def fid_eval(model, diff, cfg, dev, amp, grid_path=None):
         return out
 
     score = fid.compute_fid(gen=gen_fn, dataset_name="cifar10", dataset_res=32, dataset_split="train",
-                            mode="clean", num_gen=n, batch_size=500, z_dim=1, device=dev, verbose=False)
+                            mode="clean", num_gen=n, batch_size=500, z_dim=1, device=dev, verbose=False,
+                            use_dataparallel=False)
     return {"fid": float(score), "n": n, "ddim_steps": cfg.get("ddim_steps", 50)}
 '''
 FILES['scripts/run_queue.py'] = r'''"""Run a list of training jobs, one sequential queue per GPU (or a single CPU queue).
@@ -785,13 +790,17 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--plan", required=True)
 ap.add_argument("--gpus", default="")  # e.g. "0,1"; empty -> CPU
 ap.add_argument("--deadline", type=float, default=1e9)
+ap.add_argument("--cpu-workers", type=int, default=1)
 ap.add_argument("--extra", nargs="*", default=[])
 a = ap.parse_args()
 
 runs = json.load(open(a.plan))["runs"]
 T0 = time.time()
-slots = a.gpus.split(",") if a.gpus else ["cpu"]
-queues = [runs[i::len(slots)] for i in range(len(slots))]
+slots = a.gpus.split(",") if a.gpus else ["cpu"] * a.cpu_workers
+# a run may pin itself to a queue with "slot": k (k < number of slots); otherwise round-robin
+queues = [[] for _ in slots]
+for i, r in enumerate(runs):
+    queues[r.get("slot", i) % len(slots)].append(r)
 os.makedirs("logs", exist_ok=True)
 
 
@@ -821,6 +830,39 @@ ths = [threading.Thread(target=worker, args=(s, q)) for s, q in zip(slots, queue
 [t.start() for t in ths]
 [t.join() for t in ths]
 print(f"queue finished in {time.time() - T0:.0f}s")
+'''
+FILES['scripts/prepare_cifar10.py'] = r'''"""Fetch CIFAR-10 (Krizhevsky 2009) from the Hugging Face mirror `uoft-cs/cifar10` (lossless PNGs of the
+original images) and save uint8 arrays to <root>/cifar10_{train,test}.npz, which src/mcvr/data.py loads.
+Used on Kaggle because the authors' server was too slow there (~90 kB/s) and Kaggle batch sessions
+cannot attach Kaggle datasets. Locally, scripts/download_cifar10.py (torchvision) is an alternative.
+python scripts/prepare_cifar10.py data/cifar10"""
+import io
+import os
+import sys
+
+import numpy as np
+from huggingface_hub import hf_hub_download, list_repo_files
+from PIL import Image
+import pyarrow.parquet as pq
+
+root = sys.argv[1] if len(sys.argv) > 1 else "data/cifar10"
+os.makedirs(root, exist_ok=True)
+files = list_repo_files("uoft-cs/cifar10", repo_type="dataset")
+for split in ["train", "test"]:
+    dst = os.path.join(root, f"cifar10_{split}.npz")
+    if os.path.exists(dst):
+        continue
+    xs, ys = [], []
+    for f in sorted(x for x in files if x.endswith(".parquet") and f"/{split}-" in x):
+        t = pq.read_table(hf_hub_download("uoft-cs/cifar10", f, repo_type="dataset"))
+        img_col = [c for c in t.column_names if "im" in c][0]
+        lab_col = [c for c in t.column_names if "label" in c][0]
+        xs += [np.array(Image.open(io.BytesIO(v["bytes"])).convert("RGB")) for v in t.column(img_col).to_pylist()]
+        ys += t.column(lab_col).to_pylist()
+    x, y = np.stack(xs), np.array(ys, dtype=np.int64)
+    assert x.shape == ((50000 if split == "train" else 10000), 32, 32, 3) and x.dtype == np.uint8, x.shape
+    np.savez(dst, x=x, y=y)
+    print(split, x.shape, "mean", x.mean().round(3), "->", dst)
 '''
 FILES['configs/cifar10.yaml'] = r'''# CIFAR-10 main configuration (Kaggle GPU). Only `estimator` and `seed` vary between runs.
 dataset: cifar10
@@ -858,42 +900,79 @@ out_dir: results/raw/cifar10
 FILES['configs/plans/cifar10_smoke.json'] = r'''{
  "runs": [
   {
+   "slot": 0,
    "config": "configs/cifar10.yaml",
    "set": [
     "estimator=uniform",
     "seed=0",
-    "steps=400",
-    "eval_every=200",
-    "probe_at=[400]",
-    "decomp_at=[400]",
-    "fid_at=[400]",
-    "probe_R=16",
+    "probe_at=[300]",
+    "decomp_at=[300]",
+    "fid_at=[300]",
+    "probe_R=4",
+    "decomp_bins=4",
+    "decomp_reps=1",
+    "fid_n=2000",
     "run_id=smoke_uniform_s0",
-    "out_dir=results/raw/smoke"
+    "steps=300",
+    "eval_every=100",
+    "out_dir=results/raw/smoke",
+    "ckpt_every=300"
    ]
   },
   {
+   "slot": 1,
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=antithetic",
+    "seed=0",
+    "fid_at=[]",
+    "run_id=smoke_antithetic_s0",
+    "steps=300",
+    "eval_every=100",
+    "out_dir=results/raw/smoke",
+    "ckpt_every=300"
+   ]
+  },
+  {
+   "slot": 1,
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=stratified",
+    "seed=0",
+    "fid_at=[]",
+    "run_id=smoke_stratified_s0",
+    "steps=300",
+    "eval_every=100",
+    "out_dir=results/raw/smoke",
+    "ckpt_every=300"
+   ]
+  },
+  {
+   "slot": 1,
    "config": "configs/cifar10.yaml",
    "set": [
     "estimator=importance",
     "seed=0",
-    "steps=400",
-    "eval_every=200",
     "fid_at=[]",
     "run_id=smoke_importance_s0",
-    "out_dir=results/raw/smoke"
+    "steps=300",
+    "eval_every=100",
+    "out_dir=results/raw/smoke",
+    "ckpt_every=300"
    ]
   },
   {
+   "slot": 1,
    "config": "configs/cifar10.yaml",
    "set": [
     "estimator=strat_anti",
     "seed=0",
-    "steps=400",
-    "eval_every=200",
     "fid_at=[]",
     "run_id=smoke_strat_anti_s0",
-    "out_dir=results/raw/smoke"
+    "steps=300",
+    "eval_every=100",
+    "out_dir=results/raw/smoke",
+    "ckpt_every=300"
    ]
   }
  ]
@@ -909,14 +988,29 @@ sh("nvidia-smi --query-gpu=name,memory.total --format=csv")
 sh("pip install -q clean-fid==0.1.35 2>&1 | tail -1")
 import torch, torchvision
 print(sys.version, torch.__version__, torchvision.__version__, flush=True)
-# resume support: results of an attached previous version are copied back
-for d in glob.glob("/kaggle/input/*/results/raw/*/*"):
-    dst = os.path.join("results", d.split("/results/", 1)[1])
-    if not os.path.exists(dst):
-        shutil.copytree(d, dst); print("restored", dst)
-torchvision.datasets.CIFAR10("data/cifar10", train=True, download=True)  # once, before parallel jobs
-torchvision.datasets.CIFAR10("data/cifar10", train=False, download=True)
+# resume support: run directories of an attached previous version are copied back (ckpt.pt included)
+for dp, dns, fns in os.walk("/kaggle/input", followlinks=True):
+    if "meta.json" in fns and "/results/raw/" in dp:
+        dst = os.path.join("results", dp.split("/results/", 1)[1])
+        if not os.path.exists(dst):
+            shutil.copytree(dp, dst); print("restored", dst)
+# CIFAR-10 from the Hugging Face mirror (scripts/prepare_cifar10.py); FID assets fetched once here, before the
+# parallel jobs start (Inception weights -> /tmp, CIFAR-10 train statistics -> clean-fid's stats dir).
+assert sh("python scripts/prepare_cifar10.py data/cifar10") == 0
+from cleanfid import fid as _fid
+from cleanfid.features import build_feature_extractor
+build_feature_extractor("clean", torch.device("cpu"), use_dataparallel=False)
+_fid.get_reference_statistics("cifar10", 32, mode="clean", split="train")
+print("data and FID assets ready", flush=True)
 ng = torch.cuda.device_count()
-sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_smoke.json --gpus {','.join(map(str, range(ng)))} --deadline 900.0 --extra git=c1a8731")
+sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_smoke.json --gpus {','.join(map(str, range(ng)))} --deadline 420.0 --extra git=7043161")
 sh("tail -n 4 logs/*.log")
 sh("tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz")
+# The small results are also printed into the kernel log (base64), because the build environment can read
+# the log through the Kaggle API but cannot reach the output-file host. scripts/fetch_kaggle_results.py decodes it.
+import base64
+blob = base64.b64encode(open("results_small.tgz", "rb").read()).decode()
+print("RESULTS_B64_BEGIN", hashlib.sha256(blob.encode()).hexdigest(), flush=True)
+for i in range(0, len(blob), 4000):
+    print(blob[i:i + 4000], flush=True)
+print("RESULTS_B64_END", flush=True)
