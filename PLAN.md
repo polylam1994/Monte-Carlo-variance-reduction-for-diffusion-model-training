@@ -128,3 +128,16 @@ fit. Changes, identical for every estimator:
 
 **A3 Fashion-MNIST** uses 800 steps (CPU cost ~3 s/step/worker), width 32 with one res-block per level,
 probes at 200/800 (R = 24) and decomposition at 800 (10 bins, 3 reps).
+
+**A4 (after the seed-0 session) Evaluation trimmed for seeds 1-2 to stay inside 2 GPU-h.** Measured:
+training 280 s/run (93 ms/step), but each FID-10k costs ~180 s (clean-fid resizes every image on the CPU),
+so a run with three FIDs costs ~830 s. Quota used after seed 0: 3,831 s; remaining 3,369 s. Repeating the
+seed-0 protocol for seeds 1-2 would need ~4,750 s. Training is unchanged (identical 3,000 steps for every
+run); only evaluation is reduced:
+* Seeds 1-2: FID-10k at step 3000 only; held-out loss every 250 steps as before; probes at 1000/3000 and
+  the decomposition at 3000 in the uniform runs.
+* `strat_anti` seed 0 (not started in the seed-0 session because of the deadline guard) runs with the full
+  seed-0 protocol, so seed 0 has complete FID-vs-steps curves for all five estimators.
+* Consequence: the FID-vs-steps figure has 3 seeds only at step 3000; intermediate points are seed 0
+  only and are labelled as such. Session hard cap 3,250 s so the total cannot exceed 7,200 s; this leaves
+  essentially no GPU reserve, so review-driven fixes must be analysis-only or CPU-only.

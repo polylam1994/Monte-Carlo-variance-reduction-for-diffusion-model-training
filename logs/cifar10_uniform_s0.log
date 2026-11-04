@@ -1,0 +1,20 @@
+[cifar10_uniform_s0] step 0 heldout 1.16017 ema 1.16017 t=0s
+[cifar10_uniform_s0] step 250 heldout 0.08917 ema 0.09815 t=28s
+[cifar10_uniform_s0] probe@250: uniform=1.000 antithetic=1.291 paired_iid=1.596 stratified=0.812 sobol=0.843 importance=0.514 is_strat=0.520 strat_anti=1.114
+[cifar10_uniform_s0] step 500 heldout 0.05705 ema 0.05923 t=50s
+[cifar10_uniform_s0] step 750 heldout 0.05005 ema 0.05020 t=72s
+[cifar10_uniform_s0] step 1000 heldout 0.04596 ema 0.04622 t=95s
+[cifar10_uniform_s0] probe@1000: uniform=1.000 antithetic=1.279 paired_iid=1.757 stratified=0.829 sobol=0.779 importance=0.829 is_strat=0.781 strat_anti=0.991
+[cifar10_uniform_s0] FID@1000 = 271.68 (205s)
+[cifar10_uniform_s0] step 1250 heldout 0.04359 ema 0.04379 t=118s
+[cifar10_uniform_s0] step 1500 heldout 0.04215 ema 0.04213 t=141s
+[cifar10_uniform_s0] step 1750 heldout 0.04093 ema 0.04086 t=164s
+[cifar10_uniform_s0] step 2000 heldout 0.04019 ema 0.03988 t=187s
+[cifar10_uniform_s0] probe@2000: uniform=1.000 antithetic=1.464 paired_iid=1.722 stratified=0.888 sobol=0.859 importance=0.884 is_strat=1.043 strat_anti=0.996
+[cifar10_uniform_s0] FID@2000 = 191.08 (168s)
+[cifar10_uniform_s0] step 2250 heldout 0.03928 ema 0.03909 t=210s
+[cifar10_uniform_s0] step 2500 heldout 0.03890 ema 0.03843 t=233s
+[cifar10_uniform_s0] step 2750 heldout 0.03789 ema 0.03788 t=257s
+[cifar10_uniform_s0] step 3000 heldout 0.03766 ema 0.03742 t=279s
+[cifar10_uniform_s0] probe@3000: uniform=1.000 antithetic=1.000 paired_iid=1.281 stratified=0.840 sobol=0.873 importance=1.609 is_strat=0.909 strat_anti=0.821
+[cifar10_uniform_s0] FID@3000 = 144.56 (166s)
