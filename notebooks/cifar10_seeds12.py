@@ -1067,7 +1067,7 @@ build_feature_extractor("clean", torch.device("cpu"), use_dataparallel=False)
 _fid.get_reference_statistics("cifar10", 32, mode="clean", split="train")
 print("data and FID assets ready", flush=True)
 ng = torch.cuda.device_count()
-sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_seeds12.json --gpus {','.join(map(str, range(ng)))} --deadline 2300.0 --extra git=636a3ae")
+sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_seeds12.json --gpus {','.join(map(str, range(ng)))} --deadline 2450.0 --extra git=210c407")
 sh("tail -n 4 logs/*.log")
 sh("tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz")
 # The small results are also printed into the kernel log (base64), because the build environment can read
