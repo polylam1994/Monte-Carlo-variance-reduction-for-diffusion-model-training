@@ -32,5 +32,6 @@ def fid_eval(model, diff, cfg, dev, amp, grid_path=None):
         return out
 
     score = fid.compute_fid(gen=gen_fn, dataset_name="cifar10", dataset_res=32, dataset_split="train",
-                            mode="clean", num_gen=n, batch_size=500, z_dim=1, device=dev, verbose=False)
+                            mode="clean", num_gen=n, batch_size=500, z_dim=1, device=dev, verbose=False,
+                            use_dataparallel=False)
     return {"fid": float(score), "n": n, "ddim_steps": cfg.get("ddim_steps", 50)}

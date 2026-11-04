@@ -914,7 +914,9 @@ for d in glob.glob("/kaggle/input/*/results/raw/*/*"):
     dst = os.path.join("results", d.split("/results/", 1)[1])
     if not os.path.exists(dst):
         shutil.copytree(d, dst); print("restored", dst)
+torchvision.datasets.CIFAR10("data/cifar10", train=True, download=True)  # once, before parallel jobs
+torchvision.datasets.CIFAR10("data/cifar10", train=False, download=True)
 ng = torch.cuda.device_count()
-sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_smoke.json --gpus {','.join(map(str, range(ng)))} --deadline 900.0 --extra git=2828750")
+sh(f"python scripts/run_queue.py --plan configs/plans/cifar10_smoke.json --gpus {','.join(map(str, range(ng)))} --deadline 900.0 --extra git=c1a8731")
 sh("tail -n 4 logs/*.log")
 sh("tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz")

@@ -18,13 +18,17 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--plan", required=True)
 ap.add_argument("--gpus", default="")  # e.g. "0,1"; empty -> CPU
 ap.add_argument("--deadline", type=float, default=1e9)
+ap.add_argument("--cpu-workers", type=int, default=1)
 ap.add_argument("--extra", nargs="*", default=[])
 a = ap.parse_args()
 
 runs = json.load(open(a.plan))["runs"]
 T0 = time.time()
-slots = a.gpus.split(",") if a.gpus else ["cpu"]
-queues = [runs[i::len(slots)] for i in range(len(slots))]
+slots = a.gpus.split(",") if a.gpus else ["cpu"] * a.cpu_workers
+# a run may pin itself to a queue with "slot": k (k < number of slots); otherwise round-robin
+queues = [[] for _ in slots]
+for i, r in enumerate(runs):
+    queues[r.get("slot", i) % len(slots)].append(r)
 os.makedirs("logs", exist_ok=True)
 
 

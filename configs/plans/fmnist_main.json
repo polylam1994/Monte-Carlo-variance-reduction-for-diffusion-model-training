@@ -1,0 +1,139 @@
+{
+ "runs": [
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=uniform",
+    "seed=0",
+    "probe_at=[200,800]",
+    "decomp_at=[800]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=antithetic",
+    "seed=0",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=stratified",
+    "seed=0",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=importance",
+    "seed=0",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=0",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=uniform",
+    "seed=1",
+    "probe_at=[200,800]",
+    "decomp_at=[800]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=antithetic",
+    "seed=1",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=stratified",
+    "seed=1",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=importance",
+    "seed=1",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=1",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=uniform",
+    "seed=2",
+    "probe_at=[200,800]",
+    "decomp_at=[800]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=antithetic",
+    "seed=2",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=stratified",
+    "seed=2",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=importance",
+    "seed=2",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  },
+  {
+   "config": "configs/fmnist.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=2",
+    "probe_at=[]",
+    "decomp_at=[]"
+   ]
+  }
+ ]
+}

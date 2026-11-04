@@ -11,7 +11,7 @@ import os
 
 FILES = ["src/mcvr/__init__.py", "src/mcvr/unet.py", "src/mcvr/diffusion.py", "src/mcvr/estimators.py",
          "src/mcvr/data.py", "src/mcvr/probes.py", "src/mcvr/train.py", "src/mcvr/fid.py",
-         "scripts/run_queue.py"]
+         "scripts/run_queue.py", "scripts/prepare_cifar10.py"]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--plan", required=True)
@@ -39,17 +39,32 @@ sh("nvidia-smi --query-gpu=name,memory.total --format=csv")
 sh("pip install -q clean-fid==0.1.35 2>&1 | tail -1")
 import torch, torchvision
 print(sys.version, torch.__version__, torchvision.__version__, flush=True)
-# resume support: results of an attached previous version are copied back
-for d in glob.glob("/kaggle/input/*/results/raw/*/*"):
-    dst = os.path.join("results", d.split("/results/", 1)[1])
-    if not os.path.exists(dst):
-        shutil.copytree(d, dst); print("restored", dst)
-torchvision.datasets.CIFAR10("data/cifar10", train=True, download=True)  # once, before parallel jobs
-torchvision.datasets.CIFAR10("data/cifar10", train=False, download=True)
+# resume support: run directories of an attached previous version are copied back (ckpt.pt included)
+for dp, dns, fns in os.walk("/kaggle/input", followlinks=True):
+    if "meta.json" in fns and "/results/raw/" in dp:
+        dst = os.path.join("results", dp.split("/results/", 1)[1])
+        if not os.path.exists(dst):
+            shutil.copytree(dp, dst); print("restored", dst)
+# CIFAR-10 from the Hugging Face mirror (scripts/prepare_cifar10.py); FID assets fetched once here, before the
+# parallel jobs start (Inception weights -> /tmp, CIFAR-10 train statistics -> clean-fid's stats dir).
+assert sh("python scripts/prepare_cifar10.py data/cifar10") == 0
+from cleanfid import fid as _fid
+from cleanfid.features import build_feature_extractor
+build_feature_extractor("clean", torch.device("cpu"), use_dataparallel=False)
+_fid.get_reference_statistics("cifar10", 32, mode="clean", split="train")
+print("data and FID assets ready", flush=True)
 ng = torch.cuda.device_count()
 sh(f"python scripts/run_queue.py --plan {a.plan} --gpus {{','.join(map(str, range(ng)))}} --deadline {a.deadline} --extra git={git}")
 sh("tail -n 4 logs/*.log")
 sh("tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz")
+# The small results are also printed into the kernel log (base64), because the build environment can read
+# the log through the Kaggle API but cannot reach the output-file host. scripts/fetch_kaggle_results.py decodes it.
+import base64
+blob = base64.b64encode(open("results_small.tgz", "rb").read()).decode()
+print("RESULTS_B64_BEGIN", hashlib.sha256(blob.encode()).hexdigest(), flush=True)
+for i in range(0, len(blob), 4000):
+    print(blob[i:i + 4000], flush=True)
+print("RESULTS_B64_END", flush=True)
 ''')
 os.makedirs(os.path.dirname(a.out), exist_ok=True)
 open(a.out, "w").write("\n".join(parts))

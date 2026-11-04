@@ -11,17 +11,17 @@ warmup: 200
 clip: 1.0
 ema: 0.999
 hflip: false
-steps: 1500
-eval_every: 250
+steps: 800
+eval_every: 100
 log_every: 25
-ckpt_every: 500
+ckpt_every: 200
 heldout_n: 2000
 probe_pool: 4096
-probe_at: [250, 1500]
+probe_at: []
 probe_estimators: [uniform, antithetic, paired_iid, stratified, sobol, importance, is_strat, strat_anti]
-probe_R: 32
-decomp_at: [1500]
-decomp_bins: 20
-decomp_reps: 2
-threads: 4
+probe_R: 24
+decomp_at: []
+decomp_bins: 10
+decomp_reps: 3
+threads: 1
 out_dir: results/raw/fmnist

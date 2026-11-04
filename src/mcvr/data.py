@@ -13,9 +13,13 @@ def _fmnist(root, split):
 
 
 def _cifar10(root, split):
-    import torchvision
-    ds = torchvision.datasets.CIFAR10(root, train=(split == "train"), download=True)
-    return torch.from_numpy(ds.data).permute(0, 3, 1, 2).contiguous()
+    npz = os.path.join(root, f"cifar10_{split}.npz")  # written by scripts/prepare_cifar10.py
+    if os.path.exists(npz):
+        x = np.load(npz)["x"]
+    else:  # torchvision layout, see scripts/download_cifar10.py
+        import torchvision
+        x = torchvision.datasets.CIFAR10(root, train=(split == "train"), download=False).data
+    return torch.from_numpy(x).permute(0, 3, 1, 2).contiguous()
 
 
 def load(name, root, split, device):
