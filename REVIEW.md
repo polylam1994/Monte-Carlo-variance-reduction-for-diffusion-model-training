@@ -33,3 +33,33 @@ iteration 1, so later fixes are CPU-only or analysis-only.
    ((0.4914 + 0.4822 + 0.4465)/3 · 255 = 120.70), with 50,000/10,000 images. Noted in the paper.
 8. **Novelty of antithetic training noise** rests on a web search (the arXiv API was unreachable). Hedged
    accordingly in the text.
+
+## Iteration 2 (after CPU-only fixes; final)
+
+What changed: all items 1–5 and 7 above were addressed as described. Results of the fixes:
+* **Probe noise (W2)** is real and large. At fixed parameters, a single variance-ratio estimate with R = 24 has a
+  median coefficient of variation of ≈ 20% (up to ≈ 35%), so one in-run probe could read 0.58 or 1.04 for the
+  same estimator. The paper's variance claims now use geometric means with 95% CIs over all independent
+  probes, plus sign tests. Under that standard, stratified and Sobol t reduce variance on both datasets
+  (CIFAR-10 0.82 [0.79, 0.86], sign test p = 0.008). Antithetic ε is significantly worse on Fashion-MNIST but
+  *not* significantly different from uniform on CIFAR-10 (1.16 [0.98, 1.38]). The claim was softened accordingly.
+* **Oracle gradient-IS (W3)** measured at fixed parameters: ≈ 0.54× uniform variance at all three checkpoints, against 0.52–0.55
+  predicted by the decomposition. This is the largest reduction of any estimator, and the prediction is
+  confirmed. Its effect on *training* remains untested (no GPU left).
+* **Decomposition accuracy (W4)** with 8 repetitions on Fashion-MNIST: the predictions are biased upward for
+  antithetic and strat+anti (1.2–1.5 predicted vs 0.95–1.25 measured), but correct in ranking and accurate for
+  the oracle IS. The bias is reported, not explained.
+* **New finding while fixing:** with the final Fashion-MNIST data, loss-based IS improves held-out loss with
+  p = 0.04 (Welch; paired p = 0.002). It is reported as nominal, because it does not survive Bonferroni over
+  4 comparisons and the pre-registered criterion also required FID.
+
+| Criterion | Score | Reason |
+|---|---|---|
+| Soundness | 7 | Equal compute, unbiasedness checked, variance measured at identical parameters with quantified probe noise, pre-registered design with every deviation logged, MDE stated. Still limited by scale (FID ≈ 140, 3k steps), n = 3, a reduced FID schedule, and an unexplained bias in the antithetic prediction. |
+| Clarity | 8 | One question, one estimator change, consistent notation; all numbers are script-generated macros; claims are graded by evidence (significant / nominal / conjecture). |
+| Significance | 6 | Mostly a careful replication with a negative result. Useful pieces: the antithetic condition V_t + V_x < −ρV_ε with its measurement; the loss-vs-gradient proposal mismatch with a measured 0.53× oracle; and a warning that single gradient-variance probes are noisy. None of this is shown to improve training at scale. |
+| Reproducibility | 9 | Kernels embed exact source with hashes; checksummed result transfer; budget ledger; runs.csv; `reproduce.sh paper` regenerates every table, figure, number and the PDF; Fashion-MNIST re-runs on CPU. The one gap: CIFAR checkpoints were not exported. |
+
+**Stopping rule.** The 2-GPU-hour budget is exhausted (1.97 h), and two iterations of phases 3–5 are complete,
+so the project stops here even though not all scores are ≥ 8. The remaining weaknesses (scale, power, untrained
+gradient-IS proposal) all need more GPU time; see FINAL_SUMMARY.md.

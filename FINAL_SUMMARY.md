@@ -9,23 +9,26 @@ U-Net, 3,000 steps, 5 trained estimators × 3 seeds, Kaggle T4) and Fashion-MNIS
 5 × 3 seeds, CPU). Gradient variance was measured directly at fixed parameters for all 8 estimators and
 decomposed with the law of total variance. Total GPU: 1.97 of 2.0 h.
 
-## What was found (numbers: `results/numbers.json`, paper Tables 1–4)
-1. **Stratified / Sobol timesteps reduce gradient variance by 11–24% at every probed checkpoint (CIFAR-10),
-   for free.** Sobol and plain stratification are indistinguishable, as 1-D theory predicts.
-2. **Only ~6% of the per-sample gradient variance is between timesteps.** The rest is data-given-t
-   (~44%) and noise (~50%). This caps what any timestep-stratification scheme can achieve.
-3. **Antithetic ε works as a coupling (ρ ≈ −0.7, close to the −1 of a locally linear network) but not as
-   an estimator at equal compute.** Each pair shares one image and one timestep, so it helps only if
-   V_t + V_x < −ρ V_ε, and here it is 0.50 vs 0.36. It increased variance at 6 of 8 CIFAR-10 probes and at
-   every Fashion-MNIST probe.
+## What was found (numbers: `results/numbers.json`, paper Tables 1–5)
+1. **Stratified and Sobol timesteps reliably reduce gradient variance, for free.** CIFAR-10 geometric mean
+   0.82× [0.79, 0.86] (all 8 probes < 1, sign test p = 0.008); Fashion-MNIST 0.85× [0.74, 0.98]. Sobol ≈
+   stratified, as 1-D theory predicts. Overhead is under 3%.
+2. **Only ~6% of the per-sample gradient variance is between timesteps.** The rest is data-given-t (~44%)
+   and noise (~50%). This caps what any timestep-stratification scheme can do.
+3. **Antithetic ε works as a coupling (ρ ≈ −0.7; it beats its paired-i.i.d. control in 8/8 CIFAR probes)
+   but not as an estimator at equal compute.** Each pair shares one image and one timestep, so it helps only
+   if V_t + V_x < −ρ V_ε; measured 0.50 vs 0.36. Ratio 1.16 [0.98, 1.38] on CIFAR-10 (not significantly
+   different from uniform) and 1.41 [1.25, 1.58] on Fashion-MNIST (significantly worse).
 4. **The Improved-DDPM loss-based IS proposal is mismatched to the gradient.** Per-sample loss varies by
-   ~190× across timesteps; gradient second moments vary by ~8×. On CIFAR-10 it halves variance early, then
-   increases it by step 3000. A gradient-norm proposal is *predicted* to give ~0.6× (see REVIEW.md for the
-   post-hoc check).
-5. **No estimator significantly changed held-out loss or FID** (pre-registered Welch tests, n = 3).
-   Importance sampling was best on both (held-out −1.5%, p = 0.07; FID 135.3 vs 141.0, p = 0.24). With
-   3 seeds the detection limit is ~1.7% loss / ~12 FID, so only large effects are ruled out.
-6. **Overhead is negligible** (all within ±3% ms/step).
+   ~190× across timesteps; gradient second moments vary by ~8×. A gradient-norm proposal
+   q ∝ sqrt(E‖g‖²|t), measured post hoc at fixed parameters, gives **≈0.54×** variance at all three checkpoints, matching the
+   decomposition's prediction (0.52–0.55). This is the largest reduction found. It was not trained.
+5. **Training outcomes.** No estimator significantly changed CIFAR-10 held-out loss or FID (n = 3;
+   detection limit ~1.7% / ~12 FID). Loss-based IS was best on both (held-out −1.5%, p = 0.07; FID 135.3 vs
+   141.0, p = 0.24) and nominally significant on Fashion-MNIST (−2.7% held-out, p = 0.04; does not survive
+   Bonferroni). This is consistent but not conclusive evidence of a small gain.
+6. **Single gradient-variance probes are noisy** (CV ≈ 20% at R = 24 draws). Conclusions must be aggregated
+   over many probes. This is a practical warning for anyone who "measures gradient variance".
 
 ## What is weak (be upfront about these)
 * **Scale.** 3,000 steps of a 1.5M-param model; FID ≈ 140. These are not converged models, and late-training
@@ -34,8 +37,8 @@ decomposed with the law of total variance. Total GPU: 1.97 of 2.0 h.
 * **Budget accident.** 0.42 of the 2 GPU-h were lost to a slow CIFAR-10 download in the first smoke test.
   This forced the reduced FID schedule (PLAN A1–A5). Every deviation is in PLAN.md.
 * **Only one IS proposal trained.** The gradient-norm "oracle" is an analysis result, not a training result.
-* **The decomposition is approximate.** It ranks estimators correctly, but over-predicts the antithetic
-  penalty on CIFAR-10 at step 3000.
+* **The decomposition is approximate.** It ranks estimators correctly and nails the oracle-IS ratio, but
+  over-predicts the antithetic penalty (CIFAR-10 step 3000; also on Fashion-MNIST with 8 repetitions).
 * **Novelty.** Stratified and importance-sampled t are prior work (VDM, Improved DDPM, CARV, Kim et al.).
   Antithetic training noise was not found in a web-only literature search. The contribution is the controlled
   comparison and the variance-decomposition explanation.
@@ -53,7 +56,11 @@ decomposed with the law of total variance. Total GPU: 1.97 of 2.0 h.
 * **Optimal IS proposal:** q* ∝ sqrt(E‖g‖² | t) minimises tr Cov (Cauchy–Schwarz). The Improved-DDPM rule
   q ∝ sqrt(E[ℓ²|t]) minimises *loss* variance, which is a different target.
 * **Why lower variance did not give better FID:** Adam's normalisation, the small share of variance that is
-  reducible, and low power. IS's slight edge is unexplained (two conjectures); clipping was ruled out.
+  reducible, and low power (MDE ≈ 3 sd with n = 3). IS's slight edge is unexplained; the two conjectures are an
+  early-training head start, or Adam interacting with the re-allocated timesteps. Clipping was ruled out (it
+  was never active after warm-up).
+* **The p = 0.04 question:** be clear that it is uncorrected, does not survive Bonferroni, and was not the
+  pre-registered success criterion (which needed FID too). Do not oversell it.
 * **Rigour choices:** equal evaluations per step; same initialisation per seed across arms; all estimators
   probed at the *same* parameters; unbiasedness check; pre-registration plus amendments; numbers generated by
   script; budget ledger.

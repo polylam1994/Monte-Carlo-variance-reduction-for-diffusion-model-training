@@ -33,3 +33,25 @@ antithetic increases it at all but the last checkpoint, despite ρ≈−0.7, bec
 loss-based IS halves variance early but increases it late; no estimator changes FID or held-out loss
 significantly (IS best on both, p≈0.07–0.24).
 **Next:** finish Fashion-MNIST, write the paper, self-review.
+
+## Iteration 2 — Phase 4–5: paper, self-review, CPU-only fixes (2026-11-04)
+**Ran (CPU only).** Fashion-MNIST finished (15/15 runs). Post-hoc re-probes of the three Fashion-MNIST final
+checkpoints (`scripts/probe_checkpoint.py`): 4 independent probe seeds each, an 8-repetition decomposition,
+and an oracle gradient-norm importance-sampling estimator probed at fixed parameters.
+**Changed.** Paper drafted and compiled (`paper/paper.pdf`). Every number comes from `paper/numbers.tex`,
+generated from `results/`. Fixes from review iteration 1:
+* minimum-detectable-effect statement (n = 3 ⇒ ≈1.7% loss / ≈12 FID);
+* variance claims now rest on geometric means with 95% CIs over all probes plus sign tests, because single
+  probes turned out to be noisy (post hoc: median CV ≈ 20% at R = 24);
+* antithetic on CIFAR-10 is reported as "not significantly different from uniform" (1.16 [0.98, 1.38]), not
+  "worse"; IS's late-training reversal is reported as CIFAR-10-specific;
+* the oracle gradient-IS reduction is now measured, not only predicted;
+* the paired-by-seed analysis is reported as secondary;
+* the Fashion-MNIST IS result (p = 0.04) is reported together with the Bonferroni caveat.
+**GPU used so far:** 1.97 / 2.00 GPU-h (unchanged; budget exhausted).
+**Post-hoc results.** Oracle gradient-norm IS measured at 0.53–0.54× uniform variance (predicted 0.52–0.55);
+single-probe CV ≈ 20% (max 35%). Fashion-MNIST: importance sampling lowers held-out loss, p = 0.04
+(uncorrected; not significant after Bonferroni).
+**Review scores (iteration 2, final):** soundness 7, clarity 8, significance 6, reproducibility 9.
+**Stop.** The GPU budget is exhausted (1.97 / 2.00 GPU-h) and two iterations of phases 3–5 are complete. Not all
+scores are ≥ 8; the remaining weaknesses need more GPU (see FINAL_SUMMARY.md).

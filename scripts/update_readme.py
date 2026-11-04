@@ -14,10 +14,13 @@ for name, t in rows:
     vr = "1 (reference)" if t == "Unif" else c(N.get(t + "VR", "–"))
     lines.append(f"| {name} | {vr} | {c(N[t + 'HO'])} | {c(N[t + 'FID'])} | {N[t + 'MS']} |")
 lines.append(f"| Sobol t (probe only) | {c(N['SobolVR'])} | – | – | – |")
-lines.append(f"| Oracle gradient-norm IS (predicted from decomposition) | {N['Decoracle']} | – | – | – |")
+lines.append(f"| Oracle gradient-norm IS, predicted from decomposition (CIFAR-10) | {N['Decoracle']} | – | – | – |")
+if "PHOracle" in N:
+    lines.append(f"| Oracle gradient-norm IS, *measured* post hoc (Fashion-MNIST, fixed θ) | {N['PHOracle']} | – | – | – |")
 block = "\n".join(lines) + (
     f"\n\nMean ± sd over seeds (strat+anti FID: 2 seeds). No held-out-loss or FID difference is significant "
-    f"(pre-registered Welch tests: smallest p = {N['ImppHO']} for held-out loss, {N['ImppFID']} for FID, both importance sampling). "
+    f"on CIFAR-10 (pre-registered Welch tests: smallest p = {N['ImppHO']} for held-out loss, {N['ImppFID']} for FID, both importance sampling). "
+    f"On Fashion-MNIST importance sampling lowers held-out loss with p = {N['FImppHO']} (uncorrected; not significant after Bonferroni). "
     f"Variance decomposition at step 3000: between-timestep {N['DecT']}%, data-given-t {N['DecX']}%, noise {N['DecE']}%; "
     f"antithetic correlation ρ = {N['Decrho']}. GPU used: {N['GPUhours']} of 2.0 GPU-h.")
 p = os.path.join(ROOT, "README.md")

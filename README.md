@@ -9,8 +9,10 @@ every probed checkpoint, at no cost. That is too little to change FID or held-ou
 Antithetic noise pairs are strongly anti-correlated (ρ ≈ −0.7) yet *increase* variance at 6 of 8 CIFAR-10
 probes (up to +46%), because each pair shares one image and one timestep. Loss-based importance sampling
 of timesteps halves the variance early in training, but on CIFAR-10 it increases it by the end. It gave the
-best held-out loss and FID, but not significantly (3 seeds). A law-of-total-variance decomposition explains
-these outcomes: only 6% of the gradient variance is between timesteps.
+best held-out loss and FID on CIFAR-10, but not significantly with 3 seeds; on Fashion-MNIST the gain was
+nominally significant (p = 0.04, uncorrected). A gradient-norm importance proposal cuts variance to ~0.54× at
+fixed parameters (measured post hoc; not trained). A law-of-total-variance decomposition explains all of this:
+only 6% of the gradient variance is between timesteps.
 
 ![Gradient-variance ratio of each estimator vs. uniform sampling, at identical parameters](paper/figures/var_ratio.png)
 
@@ -23,9 +25,10 @@ these outcomes: only 6% of the gradient variance is between timesteps.
 | Importance t (loss-based) | 1.22 ± 0.34 | 36.92 ± 0.32 | 135.3 ± 4.1 | 92.2 |
 | Stratified t + antithetic ε | 0.83 ± 0.04 | 37.65 ± 0.19 | 141.2 ± 3.7 | 89.4 |
 | Sobol t (probe only) | 0.86 ± 0.01 | – | – | – |
-| Oracle gradient-norm IS (predicted from decomposition) | 0.62 | – | – | – |
+| Oracle gradient-norm IS, predicted from decomposition (CIFAR-10) | 0.62 | – | – | – |
+| Oracle gradient-norm IS, *measured* post hoc (Fashion-MNIST, fixed θ) | 0.54 | – | – | – |
 
-Mean ± sd over seeds (strat+anti FID: 2 seeds). No held-out-loss or FID difference is significant (pre-registered Welch tests: smallest p = 0.07 for held-out loss, 0.24 for FID, both importance sampling). Variance decomposition at step 3000: between-timestep 6%, data-given-t 44%, noise 50%; antithetic correlation ρ = -0.71. GPU used: 1.97 of 2.0 GPU-h.
+Mean ± sd over seeds (strat+anti FID: 2 seeds). No held-out-loss or FID difference is significant on CIFAR-10 (pre-registered Welch tests: smallest p = 0.07 for held-out loss, 0.24 for FID, both importance sampling). On Fashion-MNIST importance sampling lowers held-out loss with p = 0.04 (uncorrected; not significant after Bonferroni). Variance decomposition at step 3000: between-timestep 6%, data-given-t 44%, noise 50%; antithetic correlation ρ = -0.71. GPU used: 1.97 of 2.0 GPU-h.
 <!-- RESULTS:END -->
 
 All numbers come from logged runs (`results/runs.csv`, `results/raw/`) via scripts. The full write-up is

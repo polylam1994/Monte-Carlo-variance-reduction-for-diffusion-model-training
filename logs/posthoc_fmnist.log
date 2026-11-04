@@ -2,3 +2,11 @@ decomposition done 524 s; predicted oracle ratio 0.537
 repeat 0: uniform=1.000 antithetic=1.005 paired_iid=0.993 stratified=0.575 sobol=0.588 importance=0.568 is_strat=0.524 strat_anti=1.404 grad_is_oracle=0.388 1224 s
 repeat 1: uniform=1.000 antithetic=1.133 paired_iid=1.470 stratified=0.852 sobol=0.964 importance=0.791 is_strat=0.713 strat_anti=1.007 grad_is_oracle=0.531 1930 s
 repeat 2: uniform=1.000 antithetic=1.498 paired_iid=1.637 stratified=1.035 sobol=1.014 importance=0.813 is_strat=0.761 strat_anti=0.915 grad_is_oracle=0.678 2608 s
+repeat 3: uniform=1.000 antithetic=1.368 paired_iid=1.451 stratified=0.805 sobol=1.197 importance=0.778 is_strat=0.799 strat_anti=0.759 grad_is_oracle=0.537 3282 s
+saved
+decomposition done 506 s; predicted oracle ratio 0.524
+repeat 0: uniform=1.000 antithetic=0.941 paired_iid=1.074 stratified=0.537 sobol=0.581 importance=0.602 is_strat=0.477 strat_anti=1.309 grad_is_oracle=0.434 1213 s
+repeat 1: uniform=1.000 antithetic=1.162 paired_iid=1.516 stratified=0.846 sobol=1.020 importance=0.869 is_strat=0.753 strat_anti=0.974 grad_is_oracle=0.563 1915 s
+repeat 2: uniform=1.000 antithetic=1.498 paired_iid=1.243 stratified=0.915 sobol=0.986 importance=0.611 is_strat=0.820 strat_anti=0.943 grad_is_oracle=0.588 2623 s
+repeat 3: uniform=1.000 antithetic=0.964 paired_iid=1.345 stratified=0.791 sobol=1.048 importance=0.776 is_strat=0.919 strat_anti=0.759 grad_is_oracle=0.573 3337 s
+saved

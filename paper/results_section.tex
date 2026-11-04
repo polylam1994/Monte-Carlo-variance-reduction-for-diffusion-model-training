@@ -3,9 +3,10 @@
   \includegraphics[width=\linewidth]{figures/var_ratio.pdf}
   \caption{\textbf{Gradient variance relative to uniform sampling at the same parameters and the same $N=128$.}
   Each dot is one (seed, checkpoint) probe with $R=48$ independent mini-batch gradients per estimator; colour
-  shades mark the checkpoint. Values below 1 mean less variance. Stratified and Sobol timesteps are below 1
-  everywhere. Antithetic noise is above 1 at most checkpoints, but always below its paired-i.i.d. control.
-  Importance sampling moves from well below 1 to above 1 as training proceeds.}
+  shades mark the checkpoint. Values below 1 mean less variance. Stratified and Sobol timesteps are below 1 in
+  every plotted probe. Antithetic noise is mostly above 1, but below its paired-i.i.d. control in
+  \AntiBeatsPaired\ (CIFAR-10) and \FAntiBeatsPaired\ (Fashion-MNIST) probes. On CIFAR-10, importance sampling
+  moves from well below 1 to above 1 as training proceeds.}
   \label{fig:var}
 \end{figure}
 
@@ -60,7 +61,7 @@ But by Eq.~\eqref{eq:anti} it helps only if $V_t+V_x<-\rho V_\epsilon$, and here
 $V_t+V_x=\DecLHS$ while $-\rho V_\epsilon=\DecRHS$ (as fractions of the total). The condition fails, and it
 fails more clearly on Fashion-MNIST, where the data term dominates ($V_x=\FDecX$\%, $\FDecLHS$ vs $\FDecRHS$).
 The decomposition gets the ranking of the estimators right and predicts the absolute uniform variance to within
-10\% on CIFAR-10. It overestimates the antithetic penalty at step 3000 (predicted \DecpAnti, measured \AntiVR).
+10\% on CIFAR-10 (less well on Fashion-MNIST, Table~\ref{tab:decomp}). It overestimates the antithetic penalty at step 3000 (predicted \DecpAnti, measured \AntiVR).
 For importance sampling, the loss-based proposal
 $q\propto\sqrt{\mathbb E[\ell^2\mid t]}$ inherits the loss's $\approx$\LossRange$\times$ dynamic range across timesteps
 (ratio of the largest to smallest bin), whereas $\sqrt{\mathbb E\|g\|^2\mid t}$ varies only $\approx$\GradRange$\times$. The

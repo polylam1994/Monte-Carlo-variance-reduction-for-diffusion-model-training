@@ -1,0 +1,6 @@
+decomposition done 210 s; predicted oracle ratio 0.551
+repeat 0: uniform=1.000 antithetic=1.019 paired_iid=1.348 stratified=0.575 sobol=0.696 importance=0.663 is_strat=0.581 strat_anti=1.453 grad_is_oracle=0.429 493 s
+repeat 1: uniform=1.000 antithetic=0.947 paired_iid=1.401 stratified=0.724 sobol=0.907 importance=0.927 is_strat=0.678 strat_anti=0.828 grad_is_oracle=0.567 778 s
+repeat 2: uniform=1.000 antithetic=1.409 paired_iid=1.614 stratified=0.933 sobol=0.952 importance=0.633 is_strat=0.692 strat_anti=0.790 grad_is_oracle=0.604 1064 s
+repeat 3: uniform=1.000 antithetic=1.382 paired_iid=1.621 stratified=0.805 sobol=1.001 importance=0.781 is_strat=0.937 strat_anti=0.742 grad_is_oracle=0.542 1352 s
+saved
