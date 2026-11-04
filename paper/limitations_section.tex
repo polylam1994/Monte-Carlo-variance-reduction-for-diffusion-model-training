@@ -4,9 +4,10 @@
 converged. Gradient-noise effects may matter more, or less, late in training and at scale; we cannot tell
 which. The variance \emph{measurements}, in contrast, are exact statements about these estimators at these
 parameters.
-\item \textbf{Power.} Three seeds per arm detect only large effects. A non-significant difference is not evidence
-of equivalence. The effect sizes we report are small compared with seed-to-seed spread, but we cannot rule out
-effects of the order of one standard deviation.
+\item \textbf{Power.} With three seeds per arm, a two-sided test at $\alpha=0.05$ has 80\% power only for effects of
+about \MDEd\ within-arm standard deviations. Here that is $\approx$\MDEho\% in held-out loss or $\approx$\MDEfid\ FID points.
+A non-significant result therefore rules out only large effects; it is not evidence of equivalence. The
+importance-sampling difference (\ImpHOdiff\% held-out loss) is just below this threshold.
 \item \textbf{FID protocol.} Because of the budget, FID was computed at three checkpoints for seed 0 and only at
 the final checkpoint for seeds 1--2 (PLAN amendment A4). We used DDIM-25 rather than DDIM-50, 10k rather than
 50k samples, and training-set statistics. All of these are fixed across arms, but they make the absolute values

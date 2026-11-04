@@ -15,3 +15,18 @@ seed, runtime, metrics and kernel URL. Every table, figure and in-text number is
 \texttt{PLAN.md} was committed before any run. All deviations are listed there as amendments A1--A4, with
 their reasons: model width 64$\to$32 and DDIM-50$\to$25 after measured timings, EMA warm-up, Fashion-MNIST
 schedule, and a reduced FID schedule for seeds 1--2. No seed or run was excluded.
+
+\section{Fashion-MNIST results}
+\label{app:fmnist}
+\begin{table}[h]
+  \centering\small
+  \caption{Fashion-MNIST, \FSteps\ steps, CPU. Mean $\pm$ sd over seeds; $p$: Welch $t$-test vs uniform. ms/step is
+  for a single-threaded worker (4 workers ran in parallel).}
+  \resizebox{\linewidth}{!}{\input{tables/main_fmnist.tex}}
+\end{table}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/loss_curves_fmnist.pdf}
+  \includegraphics[width=\linewidth]{figures/per_t_fmnist.pdf}
+  \caption{Fashion-MNIST held-out loss and per-timestep decomposition.}
+\end{figure}

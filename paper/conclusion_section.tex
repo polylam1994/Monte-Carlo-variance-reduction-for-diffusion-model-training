@@ -1,0 +1,9 @@
+Classical variance reduction transfers to diffusion training in the sense that the estimators are unbiased,
+cheap and act as theory predicts. In this regime they do not translate into better models at equal compute.
+The law-of-total-variance decomposition explains why. The DDPM gradient's variance is dominated by data and
+noise \emph{within} a timestep, not by the choice of timestep, which caps what stratification can achieve. Antithetic
+noise cancels the noise term efficiently, but pays for it by halving the number of distinct images. The finance
+lesson that transfers is diagnostic: measure the variance components first, then choose the estimator. The
+most promising direction the measurements point to is a gradient-norm-based importance proposal, predicted to
+cut variance by $\approx$\Decoracle$\times$, combined with stratification. That is a conjecture to test at larger
+scale and with more seeds.

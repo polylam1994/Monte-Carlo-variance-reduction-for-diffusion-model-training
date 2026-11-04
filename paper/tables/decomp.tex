@@ -1,0 +1,15 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+ & stratified & antithetic & paired i.i.d. & strat+anti & oracle grad-IS & $N\,\mathrm{tr}\,\mathrm{Cov}$ (unif.) \\
+\midrule
+\multicolumn{7}{l}{\textit{Fashion-MNIST, step 800, 2 seed(s)}} \\
+fractions $V_t / V_x / V_\epsilon$ & \multicolumn{6}{l}{5\% / 66\% / 30\%\quad pooled $\rho$ = -0.83 $\pm$ 0.14\quad $V_t+V_x$ = 0.70 vs $-\rho V_\epsilon$ = 0.25} \\
+predicted ratio & 0.95 $\pm$ 0.00 & 1.46 $\pm$ 0.12 & 1.70 $\pm$ 0.04 & 1.36 $\pm$ 0.12 & 0.46 $\pm$ 0.05 & 2.170 $\pm$ 0.272 \\
+measured ratio & 0.97 $\pm$ 0.01 & 1.41 $\pm$ 0.17 & 2.35 $\pm$ 0.08 & 1.16 $\pm$ 0.05 & -- & 1.642 $\pm$ 0.112 \\
+\midrule
+\multicolumn{7}{l}{\textit{CIFAR-10, step 3000, 3 seed(s)}} \\
+fractions $V_t / V_x / V_\epsilon$ & \multicolumn{6}{l}{6\% / 44\% / 50\%\quad pooled $\rho$ = -0.71 $\pm$ 0.05\quad $V_t+V_x$ = 0.50 vs $-\rho V_\epsilon$ = 0.36} \\
+predicted ratio & 0.94 $\pm$ 0.02 & 1.15 $\pm$ 0.05 & 1.50 $\pm$ 0.03 & 1.03 $\pm$ 0.05 & 0.62 $\pm$ 0.03 & 0.405 $\pm$ 0.011 \\
+measured ratio & 0.82 $\pm$ 0.03 & 0.92 $\pm$ 0.08 & 1.22 $\pm$ 0.08 & 0.83 $\pm$ 0.04 & -- & 0.438 $\pm$ 0.012 \\
+\bottomrule
+\end{tabular}

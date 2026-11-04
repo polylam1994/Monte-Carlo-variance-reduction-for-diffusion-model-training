@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
-from analysis import LABEL, PROBED, ROOT, TRAINED, by_est, mean_std, runs, var_ratios, welch  # noqa: E402
+from analysis import LABEL_TEX as LABEL, PROBED, ROOT, TRAINED, by_est, mean_std, runs, var_ratios, welch  # noqa: E402
 
 OUT = os.path.join(ROOT, "paper", "tables")
 os.makedirs(OUT, exist_ok=True)
@@ -96,6 +96,50 @@ def var_table():
     print("wrote var_ratio.tex")
 
 
+def decomp_tex():
+    """Table: variance decomposition at the last decomposition step, and predicted vs measured ratios."""
+    rows = []
+    for ds, name in [("fmnist", "Fashion-MNIST"), ("cifar10", "CIFAR-10")]:
+        rs = [r for r in runs(ds) if r["decomp"]]
+        if not rs:
+            continue
+        last = max(d["step"] for r in rs for d in r["decomp"])
+        Q = {k: [] for k in ["T", "X", "E", "rho", "lhs", "rhs"]}
+        P = {k: [] for k in ["stratified", "antithetic", "paired_iid", "strat_anti", "oracle_grad_IS", "uniform_abs"]}
+        Me = {k: [] for k in ["stratified", "antithetic", "paired_iid", "strat_anti", "uniform_abs"]}
+        for r in rs:
+            for d in r["decomp"]:
+                if d["step"] != last:
+                    continue
+                dec = d["dec"]; b = dec["bins"]
+                Vw = np.mean([x["Vw"] for x in b]); Ve = np.mean([x["Veps"] for x in b]); tot = Vw + dec["V_between"]
+                rho = 1 - sum(x["Vanti"] for x in b) / sum(x["Veps"] for x in b)
+                Q["T"].append(dec["V_between"] / tot); Q["E"].append(Ve / tot); Q["X"].append((Vw - Ve) / tot)
+                Q["rho"].append(rho); Q["lhs"].append((dec["V_between"] + Vw - Ve) / tot); Q["rhs"].append(-rho * Ve / tot)
+                u = dec["pred"]["uniform"]
+                for k in P:
+                    P[k].append(u * 128 if k == "uniform_abs" else dec["pred"][k] / u)
+                pr = [p for p in r["probes"] if p["step"] == last]
+                if pr:
+                    mu = pr[0]["res"]["uniform"]["trace_cov"]
+                    for k in Me:
+                        Me[k].append(mu * 128 if k == "uniform_abs" else pr[0]["res"][k]["trace_cov"] / mu)
+        f = lambda v, d=2: fmt(*mean_std(v), d) if v else "--"
+        rows.append(f"\\multicolumn{{7}}{{l}}{{\\textit{{{name}, step {last}, {len(Q['T'])} seed(s)}}}} \\\\")
+        rows.append(f"fractions $V_t / V_x / V_\\epsilon$ & \\multicolumn{{6}}{{l}}{{{100*np.mean(Q['T']):.0f}\\% / {100*np.mean(Q['X']):.0f}\\% / {100*np.mean(Q['E']):.0f}\\%"
+                    f"\\quad pooled $\\rho$ = {f(Q['rho'])}\\quad $V_t+V_x$ = {np.mean(Q['lhs']):.2f} vs $-\\rho V_\\epsilon$ = {np.mean(Q['rhs']):.2f}}} \\\\")
+        rows.append("predicted ratio & " + " & ".join(f(P[k]) for k in ["stratified", "antithetic", "paired_iid", "strat_anti", "oracle_grad_IS"]) + f" & {f(P['uniform_abs'], 3)} \\\\")
+        rows.append("measured ratio & " + " & ".join(f(Me[k]) for k in ["stratified", "antithetic", "paired_iid", "strat_anti"]) + f" & -- & {f(Me['uniform_abs'], 3)} \\\\")
+        rows.append("\\midrule")
+    if not rows:
+        return
+    rows = rows[:-1]
+    tex = ("\\begin{tabular}{lrrrrrr}\n\\toprule\n & stratified & antithetic & paired i.i.d. & strat+anti & oracle grad-IS & "
+           "$N\\,\\mathrm{tr}\\,\\mathrm{Cov}$ (unif.) \\\\\n\\midrule\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+    open(os.path.join(OUT, "decomp.tex"), "w").write(tex)
+    print("wrote decomp.tex")
+
+
 def decomp_table():
     S = {}
     for ds in ["fmnist", "cifar10"]:
@@ -119,6 +163,6 @@ def decomp_table():
 if __name__ == "__main__":
     for ds in ["fmnist", "cifar10"]:
         main_table(ds)
-    var_table(); decomp_table()
+    var_table(); decomp_table(); decomp_tex()
     json.dump(summary, open(os.path.join(ROOT, "results", "summary.json"), "w"), indent=1)
     print("wrote results/summary.json")

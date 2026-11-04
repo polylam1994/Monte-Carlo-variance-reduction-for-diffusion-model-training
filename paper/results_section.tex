@@ -1,0 +1,125 @@
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/var_ratio.pdf}
+  \caption{\textbf{Gradient variance relative to uniform sampling at the same parameters and the same $N=128$.}
+  Each dot is one (seed, checkpoint) probe with $R=48$ independent mini-batch gradients per estimator; colour
+  shades mark the checkpoint. Values below 1 mean less variance. Stratified and Sobol timesteps are below 1
+  everywhere. Antithetic noise is above 1 at most checkpoints, but always below its paired-i.i.d. control.
+  Importance sampling moves from well below 1 to above 1 as training proceeds.}
+  \label{fig:var}
+\end{figure}
+
+\paragraph{Gradient variance (Fig.~\ref{fig:var}, Table~\ref{tab:var}).}
+\emph{Stratification works, but the gain is small.} On CIFAR-10, stratified timesteps give a variance ratio of
+\StratVR\ at step 3000 (mean $\pm$ sd over 3 seeds) and \StratVRmin--\StratVRmax\ across all probes; the ratio is
+below 1 in \StratVRbelow\ probes. Scrambled
+Sobol timesteps behave the same (\SobolVR, \SobolVRbelow), as expected in one dimension (H1). The gain is
+bounded by the between-timestep share of the variance, which is only \DecT\% (\S\ref{sec:where}).
+\emph{Antithetic noise does not reduce variance at equal compute.} Its ratio is \AntiVR\ at step 3000 and
+\AntiVRmin--\AntiVRmax\ over all probes (below 1 in \AntiVRbelow). The paired-i.i.d.\ control, which differs from
+antithetic sampling only in the sign coupling, is far worse (\PairedVR), so the coupling works as intended.
+What antithetic sampling cancels is roughly what it loses by sharing $(x_0,t)$ within a pair.
+\emph{Importance sampling helps early and hurts late.} The loss-based proposal halves the variance at the first
+probe (minimum ratio \ImpVRmin) but reaches \ImpVRmax\ by the end. Stratifying the IS uniforms stabilises it
+(\ISSVR\ at step 3000; below 1 in \ISSVRbelow\ probes). On Fashion-MNIST, stratification, Sobol and
+antithetic sampling behave the same way (\FStratVRmin--\FStratVRmax, \FSobolVRmin--\FSobolVRmax\ and
+\FAntiVRmin--\FAntiVRmax). Importance sampling, however, reduces variance at every probe there
+(\FImpVRmin--\FImpVRmax). Its late-training reversal is therefore specific to CIFAR-10 in our data, and the
+800-step Fashion-MNIST runs may simply end before the proposal drifts. The unbiasedness check passes for every estimator
+(\S\ref{sec:setup}).
+
+\begin{table}[t]
+  \centering\small
+  \caption{\textbf{Gradient-variance ratio vs.\ uniform} ($\mathrm{tr}\,\mathrm{Cov}$, same $\theta$, $N=128$), mean $\pm$ sd over
+  seeds. CIFAR-10 steps 250/2000 are seed 0 only, steps 1000/3000 have 3 seeds; Fashion-MNIST has 3 seeds.}
+  \label{tab:var}
+  \resizebox{\linewidth}{!}{\input{tables/var_ratio.tex}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/per_t_cifar10.pdf}
+  \caption{\textbf{Where the variance comes from (CIFAR-10, step 3000, 3 seeds).} Left: the per-sample loss and
+  its variance fall by orders of magnitude from $t=0$ to $t=T$. Middle: the per-sample gradient moments vary far
+  less. Right: the correlation between the gradients for $\epsilon$ and $-\epsilon$ (pooled over 4 bins and
+  over seeds; thin lines are single seeds) is strongly negative at all $t$.}
+  \label{fig:pert}
+\end{figure}
+
+\paragraph{Where the variance lives (Fig.~\ref{fig:pert}, Table~\ref{tab:decomp}).}
+\label{sec:where}
+On CIFAR-10 at step 3000, the per-sample gradient variance splits into \DecT\% between timesteps ($V_t$),
+\DecX\% from the data given $t$ ($V_x$) and \DecE\% from the noise ($V_\epsilon$). This split explains the
+results above. Stratifying $t$ can remove at most the 6\% between-timestep part plus some within-bin variation.
+Antithetic noise attacks $V_\epsilon$ efficiently: $\rho=\Decrho$, close to the $-1$ of a locally affine network.
+But by Eq.~\eqref{eq:anti} it helps only if $V_t+V_x<-\rho V_\epsilon$, and here
+$V_t+V_x=\DecLHS$ while $-\rho V_\epsilon=\DecRHS$ (as fractions of the total). The condition fails, and it
+fails more clearly on Fashion-MNIST, where the data term dominates ($V_x=\FDecX$\%, $\FDecLHS$ vs $\FDecRHS$).
+The decomposition gets the ranking of the estimators right and predicts the absolute uniform variance to within
+10\% on CIFAR-10. It overestimates the antithetic penalty at step 3000 (predicted \DecpAnti, measured \AntiVR).
+For importance sampling, the loss-based proposal
+$q\propto\sqrt{\mathbb E[\ell^2\mid t]}$ inherits the loss's $\approx$\LossRange$\times$ dynamic range across timesteps
+(ratio of the largest to smallest bin), whereas $\sqrt{\mathbb E\|g\|^2\mid t}$ varies only $\approx$\GradRange$\times$. The
+proposal therefore over-samples small $t$ and gives large weights to the rest. The gradient-optimal proposal
+$q^\star$ would give a predicted ratio of \Decoracle\ on CIFAR-10 (\FDecoracle\ on Fashion-MNIST), the largest
+reduction available from any timestep-only method here. This is a prediction, not a trained result.
+
+\begin{table}[t]
+  \centering\small
+  \caption{\textbf{Law-of-total-variance decomposition and the variance ratios it predicts} (Eq.~\ref{eq:anti}),
+  compared with the direct measurement at the same checkpoint. The last column is the absolute per-sample
+  variance of the uniform estimator ($N\cdot\mathrm{tr}\,\mathrm{Cov}$), predicted and measured.}
+  \label{tab:decomp}
+  \resizebox{\linewidth}{!}{\input{tables/decomp.tex}}
+\end{table}
+
+\begin{table}[t]
+  \centering\small
+  \caption{\textbf{Training outcomes on CIFAR-10 at equal steps (3000) and equal evaluations per step.} Mean $\pm$ sd over
+  seeds. $p$: two-sided Welch $t$-test against uniform (pre-registered). FID@1000/2000 are seed 0 only. The
+  \ttt{strat\_anti} seed-2 run was trained without FID (PLAN A5), so its FID uses 2 seeds. ms/step excludes
+  evaluation; T4 GPU, fp16.}
+  \label{tab:main}
+  \resizebox{\linewidth}{!}{\input{tables/main_cifar10.tex}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fid_vs_steps_cifar10.pdf}
+  \caption{\textbf{FID vs training steps (CIFAR-10).} Left: all checkpoints for seed 0. Right: step 3000, mean $\pm$ sd
+  over seeds (dots are individual seeds). All estimators lie within one seed-to-seed standard deviation of uniform.}
+  \label{fig:fid}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/loss_curves_cifar10.pdf}
+  \caption{\textbf{Held-out loss (common random numbers) vs steps and vs wall-clock, CIFAR-10.} Right: relative difference
+  to uniform for the same seed (same initialisation), mean $\pm$ sd. Importance sampling is consistently about
+  1.5\% lower. The difference is not significant under the pre-registered test.}
+  \label{fig:loss}
+\end{figure}
+
+\paragraph{Training outcomes (Table~\ref{tab:main}, Figs.~\ref{fig:fid}--\ref{fig:loss}).}
+\emph{No estimator changes training outcomes significantly} (with 3 seeds, differences smaller than
+$\approx$\MDEho\% in held-out loss or $\approx$\MDEfid\ FID are below the detection limit; \S\ref{sec:limitations}). At step 3000 the held-out loss
+($\times10^{-3}$) is \UnifHO\ for uniform, \StratHO\ for stratified ($p=\StratpHO$), \AntiHO\ for antithetic
+($p=\AntipHO$), \SAHO\ for stratified+antithetic ($p=\SApHO$) and \ImpHO\ for importance sampling
+($p=\ImppHO$). FID-10k is \UnifFID\ (uniform), \StratFID, \AntiFID, \SAFID\ and \ImpFID\ respectively
+(all $p\ge\ImppFID$). The 15--20\% variance reduction from stratification does not register in either metric.
+Its effect on the held-out loss (\StratHOdiff\%) is far below the seed spread. Importance sampling is
+best on both metrics despite \emph{higher} gradient variance late in training. In a secondary analysis that
+pairs runs by seed (same initialisation and the same evaluation noise; not pre-registered), the differences
+are \ImpHOpair\% in held-out loss ($p=\ImppHOpair$) and \ImpFIDpair FID ($p=\ImppFIDpair$). This is
+suggestive but not significant. Gradient clipping was never active after warm-up in any arm (logged gradient
+norms $\ll 1$), so clipping bias does not explain it. Two \emph{conjectures} we could not test within budget:
+(a) the large early-training variance reduction (\ImpVRmin) gives IS a head start that persists; (b) because Adam
+normalises each coordinate, re-allocating samples towards small $t$ changes the effective step size per
+timestep, even though the gradient estimator is unbiased.
+\emph{Overhead is negligible.} All estimators run at \UnifMS--\ImpMS\ ms/step (within $\pm$3\% of
+uniform, inside timing noise), so loss vs wall-clock and loss vs steps are the same comparison.
+
+\paragraph{Fashion-MNIST.} The CPU runs (\FSteps\ steps, 3 seeds) show the same pattern. Held-out loss
+($\times10^{-3}$) is \FUnifHO\ (uniform), \FStratHO\ (stratified), \FAntiHO\ (antithetic), \FSAHO\ (strat+anti)
+and \FImpHO\ (importance), with pre-registered $p$-values \FStratpHO, \FAntipHO, \FSApHO\ and \FImppHO. The
+table is in Appendix~\ref{app:fmnist}.

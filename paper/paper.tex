@@ -24,8 +24,8 @@ between-timestep, data and noise parts. On CIFAR-10 the between-timestep part is
 stratification removes little variance (variance ratio \StratVR\ at the final checkpoint, with no measurable
 overhead). Antithetic pairs are strongly anti-correlated (pooled $\rho=\Decrho$), but each pair shares one
 image and one timestep, and that cost outweighs the cancellation (ratio \AntiVR). The loss-based importance
-proposal over-weights low-noise timesteps. It reduces variance early in training but increases it later
-(ratio \ImpVRmin--\ImpVRmax\ across checkpoints); a gradient-norm oracle proposal would give \Decoracle.
+proposal over-weights low-noise timesteps. On CIFAR-10 it reduces variance early in training but increases it
+later (ratio \ImpVRmin--\ImpVRmax\ across checkpoints); a gradient-norm oracle proposal is predicted to give \Decoracle.
 None of these variance changes produced a statistically significant improvement in held-out loss or FID after
 \Steps\ steps with 3 seeds. The decomposition predicts the sign of each effect before any training, which is
 the main practical result.

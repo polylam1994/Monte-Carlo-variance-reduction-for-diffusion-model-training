@@ -45,6 +45,13 @@ for ds, pre in DS.items():
         M[t + "HO"] = pm(*mean_std([1e3 * x for x in ho]), 2)  # x 1e-3
         M[t + "HOdiff"] = f"{100 * (np.mean(ho) / np.mean(base_ho) - 1):+.1f}"
         M[t + "pHO"] = p_str(welch(ho, base_ho))
+        # secondary (not pre-registered): paired by seed -- same initialisation and same evaluation noise
+        bmap = {r["seed"]: r["evals"][-1]["heldout"] for r in g["uniform"]}
+        dd = [100 * (r["evals"][-1]["heldout"] / bmap[r["seed"]] - 1) for r in rs if r["seed"] in bmap]
+        if e != "uniform" and len(dd) > 1:
+            from scipy import stats as _st
+            M[t + "HOpair"] = pm(*mean_std(dd), 1)
+            M[t + "pHOpair"] = p_str(float(_st.ttest_1samp(dd, 0).pvalue))
         ms = np.mean([r["done"]["ms_per_step"] for r in rs])
         M[t + "MS"] = f"{ms:.1f}"
         M[t + "Ovh"] = f"{100 * (ms / base_ms - 1):+.1f}"
@@ -55,6 +62,12 @@ for ds, pre in DS.items():
             M[t + "FID"] = pm(*mean_std(fd), 1)
             M[t + "FIDdiff"] = f"{np.mean(fd) - np.mean(bfd):+.1f}"
             M[t + "pFID"] = p_str(welch(fd, bfd))
+            bmapf = {r["seed"]: f["fid"] for r in g["uniform"] for f in r["fid"] if f["step"] == final}
+            ddf = [f["fid"] - bmapf[r["seed"]] for r in rs for f in r["fid"] if f["step"] == final and r["seed"] in bmapf]
+            if e != "uniform" and len(ddf) > 1:
+                from scipy import stats as _st
+                M[t + "FIDpair"] = pm(*mean_std(ddf), 1)
+                M[t + "pFIDpair"] = p_str(float(_st.ttest_1samp(ddf, 0).pvalue))
     # variance ratios
     vr = var_ratios([r for r in runs(ds) if r["probes"]])
     if vr:
@@ -102,6 +115,32 @@ for ds, pre in DS.items():
         gm = np.mean([[x["Vw"] + max(x["mk_sqnorm"], 0) for x in dec["bins"]] for dec in L], 0)
         M[pre + "LossRange"] = f"{np.sqrt(lm.max() / lm.min()):.0f}"
         M[pre + "GradRange"] = f"{np.sqrt(gm.max() / gm.min()):.0f}"
+
+# Minimum detectable effect (two-sided two-sample t-test, alpha 0.05, power 0.8, n per arm), using the pooled
+# within-arm sd across all trained arms. Solved with the non-central t distribution.
+from scipy import stats as _st
+
+
+def mde_d(n, alpha=0.05, power=0.8):
+    df = 2 * n - 2; tc = _st.t.ppf(1 - alpha / 2, df)
+    lo, hi = 0.01, 20.0
+    for _ in range(100):
+        d = (lo + hi) / 2
+        ncp = d * np.sqrt(n / 2)
+        pw = 1 - _st.nct.cdf(tc, df, ncp) + _st.nct.cdf(-tc, df, ncp)
+        lo, hi = (d, hi) if pw < power else (lo, d)
+    return d
+
+
+g = by_est(runs("cifar10"))
+d3 = mde_d(3)
+M["MDEd"] = f"{d3:.1f}"
+sd_ho = np.sqrt(np.mean([np.var([r["evals"][-1]["heldout"] for r in rs], ddof=1) for rs in g.values() if len(rs) > 1]))
+base_ho = np.mean([r["evals"][-1]["heldout"] for r in g["uniform"]])
+M["MDEho"] = f"{100 * d3 * sd_ho / base_ho:.1f}"
+sd_fid = np.sqrt(np.mean([np.var([f["fid"] for r in rs for f in r["fid"] if f["step"] == 3000], ddof=1)
+                          for rs in g.values() if sum(1 for r in rs for f in r["fid"] if f["step"] == 3000) > 1]))
+M["MDEfid"] = f"{d3 * sd_fid:.0f}"
 
 # Merge unbiasedness stats over datasets for the setup paragraph
 ubs = [v["dist2_to_uniform_mean"] / v["dist2_expected_if_unbiased"] for ds in DS for r in runs(ds) for p in r["probes"]

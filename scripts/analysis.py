@@ -69,3 +69,4 @@ def var_ratios(rs):
             for k, v in p["res"].items():
                 out.setdefault(k, []).append((p["step"], r["seed"], v["trace_cov"] / base))
     return out
+LABEL_TEX = {k: v.replace("ε", "$\\epsilon$").replace("+", "+") for k, v in LABEL.items()}
