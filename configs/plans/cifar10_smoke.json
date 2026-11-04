@@ -1,0 +1,43 @@
+{
+ "runs": [
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=uniform",
+    "seed=0",
+    "steps=400",
+    "eval_every=200",
+    "probe_at=[400]",
+    "decomp_at=[400]",
+    "fid_at=[400]",
+    "probe_R=16",
+    "run_id=smoke_uniform_s0",
+    "out_dir=results/raw/smoke"
+   ]
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=importance",
+    "seed=0",
+    "steps=400",
+    "eval_every=200",
+    "fid_at=[]",
+    "run_id=smoke_importance_s0",
+    "out_dir=results/raw/smoke"
+   ]
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=0",
+    "steps=400",
+    "eval_every=200",
+    "fid_at=[]",
+    "run_id=smoke_strat_anti_s0",
+    "out_dir=results/raw/smoke"
+   ]
+  }
+ ]
+}

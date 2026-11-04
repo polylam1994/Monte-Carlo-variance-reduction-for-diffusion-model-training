@@ -1,0 +1,27 @@
+# Fashion-MNIST fast-iteration configuration (local CPU). No FID (grayscale 28x28).
+dataset: fmnist
+data_root: data/fmnist
+estimator: uniform
+seed: 0
+T: 1000
+model: {ch: 32, mult: [1, 2], nres: 1, attn_lowest: false, dropout: 0.0}
+batch: 128
+lr: 2.0e-4
+warmup: 200
+clip: 1.0
+ema: 0.999
+hflip: false
+steps: 1500
+eval_every: 250
+log_every: 25
+ckpt_every: 500
+heldout_n: 2000
+probe_pool: 4096
+probe_at: [250, 1500]
+probe_estimators: [uniform, antithetic, paired_iid, stratified, sobol, importance, is_strat, strat_anti]
+probe_R: 32
+decomp_at: [1500]
+decomp_bins: 20
+decomp_reps: 2
+threads: 4
+out_dir: results/raw/fmnist

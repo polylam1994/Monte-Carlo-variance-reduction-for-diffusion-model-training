@@ -1,0 +1,60 @@
+{
+ "cfg": {
+  "dataset": "fmnist",
+  "data_root": "data/fmnist",
+  "estimator": "uniform",
+  "seed": 0,
+  "T": 1000,
+  "model": {
+   "ch": 16,
+   "mult": [
+    1,
+    2
+   ],
+   "nres": 1,
+   "attn_lowest": false,
+   "dropout": 0.0
+  },
+  "batch": 64,
+  "lr": 0.0002,
+  "warmup": 20,
+  "clip": 1.0,
+  "ema": 0.99,
+  "hflip": false,
+  "steps": 60,
+  "eval_every": 30,
+  "log_every": 10,
+  "ckpt_every": 30,
+  "heldout_n": 256,
+  "probe_pool": 512,
+  "probe_at": [
+   60
+  ],
+  "probe_estimators": [
+   "uniform",
+   "antithetic",
+   "paired_iid",
+   "stratified",
+   "sobol",
+   "importance",
+   "is_strat",
+   "strat_anti"
+  ],
+  "probe_R": 8,
+  "decomp_at": [
+   60
+  ],
+  "decomp_bins": 5,
+  "decomp_reps": 1,
+  "threads": 4,
+  "out_dir": "results/raw/pilot/fmnist_uniform_s0",
+  "run_id": "fmnist_uniform_s0"
+ },
+ "n_params": 159697,
+ "device": "cpu",
+ "gpu": "x86_64",
+ "torch": "2.15.0+cu132",
+ "python": "3.13.18",
+ "start_time": "2026-11-04T11:40:47",
+ "git": "2f630da4f11cd1d977fe747d9f10a584828539f6"
+}
