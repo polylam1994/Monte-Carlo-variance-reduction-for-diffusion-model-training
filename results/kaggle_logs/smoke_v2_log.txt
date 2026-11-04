@@ -1,0 +1,62 @@
+wrote src/mcvr/__init__.py 9c0316cd2d4c
+wrote src/mcvr/unet.py dff4a5487994
+wrote src/mcvr/diffusion.py 00a56429ab2a
+wrote src/mcvr/estimators.py 2ddb7986300b
+wrote src/mcvr/data.py 88a9c2b263cb
+wrote src/mcvr/probes.py 3b803326d30e
+wrote src/mcvr/train.py c6d884d61fa6
+wrote src/mcvr/fid.py 258ca37ae16c
+wrote scripts/run_queue.py 076acc94ce32
+wrote scripts/prepare_cifar10.py 6955c6921e52
+wrote configs/cifar10.yaml a118ad8e3f4f
+wrote configs/plans/cifar10_smoke.json c3098eb8811e
+$ nvidia-smi --query-gpu=name,memory.total --format=csv
+name, memory.total [MiB]
+Tesla T4, 15360 MiB
+Tesla T4, 15360 MiB
+$ pip install -q clean-fid==0.1.35 2>&1 | tail -1
+3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0] 2.11.0+cu130 0.26.0+cu130
+$ python scripts/prepare_cifar10.py data/cifar10
+train (50000, 32, 32, 3) mean 120.708 -> data/cifar10/cifar10_train.npz
+test (10000, 32, 32, 3) mean 121.529 -> data/cifar10/cifar10_test.npz
+downloading statistics to /usr/local/lib/python3.13/dist-packages/cleanfid/stats/cifar10_clean_train_32.npz
+data and FID assets ready
+$ python scripts/run_queue.py --plan configs/plans/cifar10_smoke.json --gpus 0,1 --deadline 420.0 --extra git=7043161
+[1] smoke_antithetic_s0 rc=0 87s
+[1] smoke_stratified_s0 rc=0 78s
+[0] smoke_uniform_s0 rc=0 222s
+[1] smoke_importance_s0 rc=0 78s
+[1] smoke_strat_anti_s0 rc=0 77s
+queue finished in 319s
+$ tail -n 4 logs/*.log
+==> logs/smoke_antithetic_s0.log <==
+[smoke_antithetic_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_antithetic_s0] step 100 heldout 0.12243 ema 1.04468 t=25s
+[smoke_antithetic_s0] step 200 heldout 0.06620 ema 0.84661 t=42s
+[smoke_antithetic_s0] step 300 heldout 0.05388 ema 0.64847 t=61s
+
+==> logs/smoke_importance_s0.log <==
+[smoke_importance_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_importance_s0] step 100 heldout 0.12110 ema 1.04464 t=23s
+[smoke_importance_s0] step 200 heldout 0.06425 ema 0.84696 t=42s
+[smoke_importance_s0] step 300 heldout 0.05141 ema 0.64921 t=62s
+
+==> logs/smoke_strat_anti_s0.log <==
+[smoke_strat_anti_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_strat_anti_s0] step 100 heldout 0.12189 ema 1.04467 t=23s
+[smoke_strat_anti_s0] step 200 heldout 0.06558 ema 0.84691 t=42s
+[smoke_strat_anti_s0] step 300 heldout 0.05217 ema 0.64882 t=61s
+
+==> logs/smoke_stratified_s0.log <==
+[smoke_stratified_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_stratified_s0] step 100 heldout 0.12132 ema 1.04463 t=23s
+[smoke_stratified_s0] step 200 heldout 0.06459 ema 0.84690 t=43s
+[smoke_stratified_s0] step 300 heldout 0.05193 ema 0.64874 t=62s
+
+==> logs/smoke_uniform_s0.log <==
+[smoke_uniform_s0] step 200 heldout 0.06602 ema 0.84693 t=42s
+[smoke_uniform_s0] step 300 heldout 0.05214 ema 0.64873 t=59s
+[smoke_uniform_s0] probe@300: uniform=1.000 antithetic=1.443 paired_iid=1.176 stratified=0.794 sobol=1.120 importance=1.041 is_strat=0.736 strat_anti=1.147
+[smoke_uniform_s0] FID@300 = 440.69 (131s)
+$ tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz
+-rw-r--r-- 1 root root 97003 Nov  4 12:45 results_small.tgz

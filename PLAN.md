@@ -104,4 +104,27 @@ coincide with stratified in 1-D; this is checked, not assumed).
   every seed.
 
 ## Amendments
-(none yet)
+All made after the pilot and GPU smoke tests, before any main-result run. Reasons are measured costs.
+
+**A1 (2026-11-04) Compute lost to data download.** The first GPU smoke test spent its whole 25-min
+session downloading CIFAR-10 from the authors' server at ~90 kB/s (0.42 GPU-h, no training). CIFAR-10 is
+now fetched from the Hugging Face mirror `uoft-cs/cifar10` (identical images, lossless PNG; ~20 s), since
+Kaggle batch sessions cannot attach Kaggle datasets. Remaining budget after both smoke tests: 5,308 s.
+
+**A2 Model and schedule sized to the measured cost.** Measured on a Kaggle T4: 200 ms/step for the
+width-64 U-Net (6.1M params) and 131 s for a 2k-sample FID, i.e. the planned 15 runs x 3 FID-10k would not
+fit. Changes, identical for every estimator:
+* U-Net base width 64 -> **32** (1.54M params), same topology.
+* Training budget **3,000 steps** per run (384k (x0,t,ε) evaluations; ~7.7 epochs).
+* FID-10k at steps **1000/2000/3000** with **DDIM-25** (was DDIM-50) to halve sampling cost.
+* EMA keeps decay 0.999 but with the standard warm-up min(0.999, (1+k)/(10+k)); without it the EMA
+  at step 1000 would still carry 37% of the random initialisation. (The Fashion-MNIST CPU runs were
+  started before this change and use plain EMA; for them only the raw-model held-out loss is reported.)
+* Gradient-variance probes at steps 250/1000/2000/3000 (R = 48) and the per-timestep decomposition at
+  1000/3000 (20 bins, 3 reps), inside the uniform runs.
+* Seeds are run in two sessions (seed 0, then seeds 1-2) so that the measured cost of the first session
+  can be checked against the budget before the rest is launched. The step budget is fixed now and will
+  not change between sessions.
+
+**A3 Fashion-MNIST** uses 800 steps (CPU cost ~3 s/step/worker), width 32 with one res-block per level,
+probes at 200/800 (R = 24) and decomposition at 800 (10 bins, 3 reps).

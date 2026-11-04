@@ -1,0 +1,6 @@
+[smoke_uniform_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_uniform_s0] step 100 heldout 0.12172 ema 1.04470 t=24s
+[smoke_uniform_s0] step 200 heldout 0.06602 ema 0.84693 t=42s
+[smoke_uniform_s0] step 300 heldout 0.05214 ema 0.64873 t=59s
+[smoke_uniform_s0] probe@300: uniform=1.000 antithetic=1.443 paired_iid=1.176 stratified=0.794 sobol=1.120 importance=1.041 is_strat=0.736 strat_anti=1.147
+[smoke_uniform_s0] FID@300 = 440.69 (131s)

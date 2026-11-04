@@ -1,0 +1,4 @@
+[smoke_importance_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_importance_s0] step 100 heldout 0.12110 ema 1.04464 t=23s
+[smoke_importance_s0] step 200 heldout 0.06425 ema 0.84696 t=42s
+[smoke_importance_s0] step 300 heldout 0.05141 ema 0.64921 t=62s

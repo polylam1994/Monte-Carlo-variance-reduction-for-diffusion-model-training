@@ -1,0 +1,4 @@
+[smoke_antithetic_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_antithetic_s0] step 100 heldout 0.12243 ema 1.04468 t=25s
+[smoke_antithetic_s0] step 200 heldout 0.06620 ema 0.84661 t=42s
+[smoke_antithetic_s0] step 300 heldout 0.05388 ema 0.64847 t=61s

@@ -1,0 +1,4 @@
+[smoke_strat_anti_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_strat_anti_s0] step 100 heldout 0.12189 ema 1.04467 t=23s
+[smoke_strat_anti_s0] step 200 heldout 0.06558 ema 0.84691 t=42s
+[smoke_strat_anti_s0] step 300 heldout 0.05217 ema 0.64882 t=61s

@@ -189,7 +189,10 @@ def run(cfg):
         gnorm = torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.get("clip", 1.0))
         scaler.step(opt); scaler.update()
         with torch.no_grad():
-            torch._foreach_lerp_(list(ema.parameters()), list(model.parameters()), 1 - cfg.get("ema", 0.999))
+            d = cfg.get("ema", 0.999)
+            if cfg.get("ema_warmup", False):  # standard warm-up so early checkpoints are not dominated by init
+                d = min(d, (1 + step) / (10 + step))
+            torch._foreach_lerp_(list(ema.parameters()), list(model.parameters()), 1 - d)
         is_state.update(t, L)  # every run tracks the IS proposal (used by probes; sampled only by IS)
         step += 1
         if boundary(step):

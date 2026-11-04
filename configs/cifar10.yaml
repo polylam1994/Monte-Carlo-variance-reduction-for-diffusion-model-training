@@ -4,16 +4,17 @@ data_root: data/cifar10
 estimator: uniform
 seed: 0
 T: 1000
-model: {ch: 64, mult: [1, 2, 2], nres: 2, attn_lowest: true, dropout: 0.0}
+model: {ch: 32, mult: [1, 2, 2], nres: 2, attn_lowest: true, dropout: 0.0}
 batch: 128
 lr: 2.0e-4
 warmup: 200
 clip: 1.0
 ema: 0.999
+ema_warmup: true
 hflip: true
 amp: true
-steps: 6000
-eval_every: 500
+steps: 3000
+eval_every: 250
 log_every: 50
 ckpt_every: 1000
 heldout_n: 2000
@@ -23,10 +24,10 @@ probe_estimators: [uniform, antithetic, paired_iid, stratified, sobol, importanc
 probe_R: 48
 decomp_at: []
 decomp_bins: 20
-decomp_reps: 2
-fid_at: [2000, 4000, 6000]
+decomp_reps: 3
+fid_at: [1000, 2000, 3000]
 fid_n: 10000
 fid_batch: 1000
-ddim_steps: 50
+ddim_steps: 25
 fid_noise_seed: 2024
 out_dir: results/raw/cifar10

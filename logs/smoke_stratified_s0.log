@@ -1,0 +1,4 @@
+[smoke_stratified_s0] step 0 heldout 1.14519 ema 1.14519 t=0s
+[smoke_stratified_s0] step 100 heldout 0.12132 ema 1.04463 t=23s
+[smoke_stratified_s0] step 200 heldout 0.06459 ema 0.84690 t=43s
+[smoke_stratified_s0] step 300 heldout 0.05193 ema 0.64874 t=62s

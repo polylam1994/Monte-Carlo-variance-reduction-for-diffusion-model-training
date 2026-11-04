@@ -8,7 +8,7 @@ data/
 kaggle.json
 .env
 *.aux
-*.log
+paper/*.log
 *.out
 *.bbl
 *.blg

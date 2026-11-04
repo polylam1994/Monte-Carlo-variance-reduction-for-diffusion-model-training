@@ -1,0 +1,66 @@
+{
+ "runs": [
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=uniform",
+    "seed=0",
+    "steps=3000",
+    "fid_at=[1000, 2000, 3000]",
+    "eval_every=250",
+    "ckpt_every=500",
+    "probe_at=[250, 1000, 2000, 3000]",
+    "decomp_at=[1000, 3000]"
+   ],
+   "slot": 0
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=importance",
+    "seed=0",
+    "steps=3000",
+    "fid_at=[1000, 2000, 3000]",
+    "eval_every=250",
+    "ckpt_every=500"
+   ],
+   "slot": 0
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=antithetic",
+    "seed=0",
+    "steps=3000",
+    "fid_at=[1000, 2000, 3000]",
+    "eval_every=250",
+    "ckpt_every=500"
+   ],
+   "slot": 1
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=stratified",
+    "seed=0",
+    "steps=3000",
+    "fid_at=[1000, 2000, 3000]",
+    "eval_every=250",
+    "ckpt_every=500"
+   ],
+   "slot": 1
+  },
+  {
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=0",
+    "steps=3000",
+    "fid_at=[1000, 2000, 3000]",
+    "eval_every=250",
+    "ckpt_every=500"
+   ],
+   "slot": 1
+  }
+ ]
+}
