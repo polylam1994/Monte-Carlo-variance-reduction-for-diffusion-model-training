@@ -1,0 +1,16 @@
+{
+ "runs": [
+  {
+   "slot": 0,
+   "config": "configs/cifar10.yaml",
+   "set": [
+    "estimator=strat_anti",
+    "seed=2",
+    "steps=3000",
+    "fid_at=[]",
+    "eval_every=250",
+    "ckpt_every=1000"
+   ]
+  }
+ ]
+}

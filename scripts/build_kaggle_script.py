@@ -18,6 +18,7 @@ ap.add_argument("--plan", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--deadline", type=float, default=3600, help="no new job starts after this many seconds")
 ap.add_argument("--configs", nargs="*", default=["configs/cifar10.yaml"])
+ap.add_argument("--no-fid", action="store_true", help="skip clean-fid install and FID assets (runs with fid_at=[])")
 a = ap.parse_args()
 
 git = os.popen("git rev-parse --short HEAD").read().strip()
@@ -36,7 +37,7 @@ for f, s in FILES.items():
 def sh(c):
     print("$", c, flush=True); return subprocess.call(c, shell=True)
 sh("nvidia-smi --query-gpu=name,memory.total --format=csv")
-sh("pip install -q clean-fid==0.1.35 2>&1 | tail -1")
+{'' if a.no_fid else 'sh("pip install -q clean-fid==0.1.35 2>&1 | tail -1")'}
 import torch, torchvision
 print(sys.version, torch.__version__, torchvision.__version__, flush=True)
 # resume support: run directories of an attached previous version are copied back (ckpt.pt included)
@@ -48,11 +49,11 @@ for dp, dns, fns in os.walk("/kaggle/input", followlinks=True):
 # CIFAR-10 from the Hugging Face mirror (scripts/prepare_cifar10.py); FID assets fetched once here, before the
 # parallel jobs start (Inception weights -> /tmp, CIFAR-10 train statistics -> clean-fid's stats dir).
 assert sh("python scripts/prepare_cifar10.py data/cifar10") == 0
-from cleanfid import fid as _fid
+{'' if a.no_fid else """from cleanfid import fid as _fid
 from cleanfid.features import build_feature_extractor
 build_feature_extractor("clean", torch.device("cpu"), use_dataparallel=False)
-_fid.get_reference_statistics("cifar10", 32, mode="clean", split="train")
-print("data and FID assets ready", flush=True)
+_fid.get_reference_statistics("cifar10", 32, mode="clean", split="train")"""}
+print("data ready", flush=True)
 ng = torch.cuda.device_count()
 sh(f"python scripts/run_queue.py --plan {a.plan} --gpus {{','.join(map(str, range(ng)))}} --deadline {a.deadline} --extra git={git}")
 sh("tail -n 4 logs/*.log")

@@ -1,0 +1,14 @@
+[cifar10_importance_s2] step 0 heldout 1.14011 ema 1.14011 t=0s
+[cifar10_importance_s2] step 250 heldout 0.08956 ema 0.09907 t=25s
+[cifar10_importance_s2] step 500 heldout 0.05703 ema 0.05977 t=48s
+[cifar10_importance_s2] step 750 heldout 0.04921 ema 0.05035 t=70s
+[cifar10_importance_s2] step 1000 heldout 0.04537 ema 0.04606 t=95s
+[cifar10_importance_s2] step 1250 heldout 0.04303 ema 0.04348 t=117s
+[cifar10_importance_s2] step 1500 heldout 0.04137 ema 0.04166 t=140s
+[cifar10_importance_s2] step 1750 heldout 0.04004 ema 0.04032 t=162s
+[cifar10_importance_s2] step 2000 heldout 0.03913 ema 0.03927 t=184s
+[cifar10_importance_s2] step 2250 heldout 0.03884 ema 0.03845 t=207s
+[cifar10_importance_s2] step 2500 heldout 0.03777 ema 0.03778 t=229s
+[cifar10_importance_s2] step 2750 heldout 0.03702 ema 0.03723 t=252s
+[cifar10_importance_s2] step 3000 heldout 0.03666 ema 0.03676 t=274s
+[cifar10_importance_s2] FID@3000 = 131.16 (188s)

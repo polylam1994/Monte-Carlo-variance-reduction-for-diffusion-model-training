@@ -45,15 +45,32 @@ def band(ax, groups, key_x, key_y, field, ests=TRAINED):
 
 
 def fig_fid(ds="cifar10"):
+    """Seed-0 FID curves (all checkpoints) + mean +/- sd over all seeds at the final step (PLAN A4)."""
     g = by_est(runs(ds))
     if not any(r["fid"] for rs in g.values() for r in rs):
         return
-    fig, ax = plt.subplots(figsize=(3.4, 2.5))
-    band(ax, g, "step", "fid", "fid")
-    ax.set_xlabel("optimiser steps (128 evaluations each)")
-    ax.set_ylabel("FID-10k (clean-fid, DDIM-50)")
-    ax.set_title("CIFAR-10: FID vs training steps (mean ± 1 sd over seeds)")
-    ax.legend(frameon=False)
+    fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.5), gridspec_kw={"width_ratios": [1.6, 1]})
+    for e in TRAINED:
+        for r in g.get(e, []):
+            if r["seed"] == 0 and len(r["fid"]) > 1:
+                axes[0].plot([f["step"] for f in r["fid"]], [f["fid"] for f in r["fid"]], color=COLOR[e],
+                             ls=LINESTYLE[e], marker=MARKER[e], ms=3.5, label=LABEL[e])
+    axes[0].set_xlabel("optimiser steps (128 evaluations each)"); axes[0].set_ylabel("FID-10k")
+    axes[0].set_title("seed 0, all checkpoints"); axes[0].legend(frameon=False)
+    final = max(f["step"] for rs in g.values() for r in rs for f in r["fid"])
+    for i, e in enumerate(TRAINED):
+        v = [f["fid"] for r in g.get(e, []) for f in r["fid"] if f["step"] == final]
+        if not v:
+            continue
+        m, sd = np.mean(v), (np.std(v, ddof=1) if len(v) > 1 else 0)
+        axes[1].errorbar([i], [m], yerr=[sd], color=COLOR[e], marker=MARKER[e], ms=5, capsize=3, lw=1.4)
+        axes[1].scatter([i] * len(v), v, color=COLOR[e], s=8, alpha=0.5, zorder=3)
+    axes[1].set_xticks(range(len(TRAINED)))
+    axes[1].set_xticklabels([LABEL[e].replace(" (baseline)", "").replace(" + ", "+\n") for e in TRAINED], fontsize=6.5)
+    n = len(g.get("uniform", []))
+    axes[1].set_title(f"step {final}: mean ± sd over {n} seeds (dots = seeds)")
+    fig.suptitle("CIFAR-10 FID (clean-fid, 10k samples, DDIM-25, same initial noise for all models)", fontsize=8.5, y=1.02)
+    fig.tight_layout()
     save(fig, f"fid_vs_steps_{ds}")
 
 
@@ -84,7 +101,7 @@ def fig_var_ratio():
     dss = [d for d in ["fmnist", "cifar10"] if any(r["probes"] for r in runs(d))]
     if not dss:
         return
-    fig, axes = plt.subplots(1, len(dss), figsize=(3.4 * len(dss), 2.6), sharey=True, squeeze=False)
+    fig, axes = plt.subplots(1, len(dss), figsize=(3.6 * len(dss), 2.6), sharey=True, squeeze=False)
     for ax, ds in zip(axes[0], dss):
         vr = var_ratios([r for r in runs(ds) if r["probes"]])
         steps = sorted({s for v in vr.values() for s, _, _ in v})
@@ -99,14 +116,14 @@ def fig_var_ratio():
         ax.axvline(1.0, color=INK, lw=1.0)
         ax.set_xscale("log")
         ax.set_yticks(range(len(names))); ax.set_yticklabels([LABEL[n] for n in names])
-        ax.set_xlabel("tr Cov(ĝ) / tr Cov(ĝ_uniform)  (< 1 = less variance)")
-        ax.set_title(f"{ds}: gradient-variance ratio at equal N=128")
-        ax.legend(frameon=False, loc="lower right", title="checkpoint", title_fontsize=7)
+        ax.set_xlabel("variance ratio vs uniform (log; <1 is better)")
+        ax.set_title({"fmnist": "Fashion-MNIST", "cifar10": "CIFAR-10"}[ds] + ", N = 128 evaluations")
+        ax.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.0, 1.0), title="checkpoint", title_fontsize=7)
         ax.invert_yaxis()
     save(fig, "var_ratio")
 
 
-def fig_per_t(ds):
+def fig_per_t(ds, groups=5):
     rs = [r for r in runs(ds) if r["decomp"]]
     if not rs:
         return
@@ -119,24 +136,31 @@ def fig_per_t(ds):
         return np.array([[b[key] for b in d["bins"]] for d in decs])
 
     fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.3))
-    for key, lab, c in [("loss_mean", "mean", COLOR["antithetic"]), ("loss_var", "variance", COLOR["stratified"])]:
-        A = arr(key); axes[0].plot(mid, A.mean(0), color=c, marker="o", ms=3, label=lab)
+    for key, lab, c, ls in [("loss_mean", "mean", COLOR["antithetic"], "-"), ("loss_var", "variance", COLOR["stratified"], "--")]:
+        A = arr(key); axes[0].plot(mid, A.mean(0), color=c, ls=ls, marker="o", ms=3, label=lab)
     axes[0].set_yscale("log"); axes[0].set_title("per-sample loss by timestep"); axes[0].legend(frameon=False)
     Vw, Ve, m2 = arr("Vw"), arr("Veps"), arr("mk_sqnorm")
-    for A, lab, c, ls in [(Vw, "within-bin var. V_w(t)", COLOR["antithetic"], "-"),
-                          (Ve, "ε-part V_ε(t)", COLOR["stratified"], "--"),
-                          (np.clip(m2, 1e-12, None), "‖E[g|t]‖²", COLOR["importance"], ":")]:
+    for A, lab, c, ls in [(Vw, "within-bin variance", COLOR["antithetic"], "-"),
+                          (Ve, "ε-part $V_\\epsilon(t)$", COLOR["stratified"], "--"),
+                          (np.clip(m2, 1e-12, None), "$\\|E[g|t]\\|^2$", COLOR["importance"], ":")]:
         axes[1].plot(mid, A.mean(0), color=c, ls=ls, marker="o", ms=3, label=lab)
     axes[1].set_yscale("log"); axes[1].set_title("per-sample gradient moments"); axes[1].legend(frameon=False)
-    rho = arr("rho")
-    axes[2].plot(mid, rho.mean(0), color=COLOR["antithetic"], marker="s", ms=3)
+    # antithetic correlation, pooled over bins within a group and over seeds (ratio of sums, less noisy)
+    Va = arr("Vanti")
+    G = np.array_split(np.arange(K), groups)
+    gm = [mid[g].mean() for g in G]
+    rho_pool = [1 - Va[:, g].sum() / Ve[:, g].sum() for g in G]
+    rho_seed = np.array([[1 - Va[i, g].sum() / Ve[i, g].sum() for g in G] for i in range(len(decs))])
+    axes[2].plot(gm, rho_pool, color=COLOR["antithetic"], marker="s", ms=4, label="pooled")
     if len(decs) > 1:
-        axes[2].fill_between(mid, rho.min(0), rho.max(0), color=COLOR["antithetic"], alpha=0.15, lw=0)
-    axes[2].axhline(0, color=INK, lw=0.8); axes[2].set_ylim(-1.05, 1.05)
+        for i in range(len(decs)):
+            axes[2].plot(gm, rho_seed[i], color=COLOR["antithetic"], lw=0.6, alpha=0.5, label="per seed" if i == 0 else None)
+    axes[2].axhline(0, color=INK, lw=0.8); axes[2].axhline(-1, color=MUTED, lw=0.6, ls=":")
+    axes[2].set_ylim(-1.1, 0.5); axes[2].legend(frameon=False, loc="upper right")
     axes[2].set_title("antithetic correlation ρ(t)")
     for ax in axes:
         ax.set_xlabel("timestep t")
-    fig.suptitle(f"{ds}, step {last}: where the variance lives ({len(decs)} seed(s), {K} bins)", fontsize=8.5, y=1.03)
+    fig.suptitle(f"{ds}, step {last}: per-timestep variance ({len(decs)} seed(s), {K} bins)", fontsize=8.5, y=1.03)
     fig.tight_layout()
     save(fig, f"per_t_{ds}")
 

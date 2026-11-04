@@ -1,0 +1,5 @@
+[fmnist_importance_s1] step 0 heldout 1.07821 ema 1.07821 t=0s
+[fmnist_importance_s1] step 100 heldout 0.14192 ema 0.98272 t=322s
+[fmnist_importance_s1] step 200 heldout 0.08436 ema 0.80308 t=641s
+[fmnist_importance_s1] step 300 heldout 0.07154 ema 0.62840 t=955s
+[fmnist_importance_s1] step 400 heldout 0.06508 ema 0.47728 t=1251s

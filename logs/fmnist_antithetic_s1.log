@@ -1,0 +1,9 @@
+[fmnist_antithetic_s1] step 0 heldout 1.07821 ema 1.07821 t=0s
+[fmnist_antithetic_s1] step 100 heldout 0.14317 ema 0.98272 t=307s
+[fmnist_antithetic_s1] step 200 heldout 0.08737 ema 0.80327 t=625s
+[fmnist_antithetic_s1] step 300 heldout 0.07512 ema 0.62871 t=943s
+[fmnist_antithetic_s1] step 400 heldout 0.06796 ema 0.47754 t=1246s
+[fmnist_antithetic_s1] step 500 heldout 0.06464 ema 0.35797 t=1546s
+[fmnist_antithetic_s1] step 600 heldout 0.06210 ema 0.26971 t=1859s
+[fmnist_antithetic_s1] step 700 heldout 0.06039 ema 0.20760 t=2179s
+[fmnist_antithetic_s1] step 800 heldout 0.05834 ema 0.16512 t=2499s

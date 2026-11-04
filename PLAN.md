@@ -141,3 +141,8 @@ run); only evaluation is reduced:
 * Consequence: the FID-vs-steps figure has 3 seeds only at step 3000; intermediate points are seed 0
   only and are labelled as such. Session hard cap 3,250 s so the total cannot exceed 7,200 s; this leaves
   essentially no GPU reserve, so review-driven fixes must be analysis-only or CPU-only.
+
+**A5 (after the seeds 1-2 session).** `strat_anti` seed 2 was not started by the deadline guard (FID-10k took
+~200 s instead of ~180 s). Remaining budget: 438 s, which cannot fit a run with FID. It is run training-only
+(no FID, identical 3,000-step training) with a 400 s hard session cap, so the total stays below 7,200 s.
+Consequence: `strat_anti` has 3 seeds for held-out loss and variance but only 2 for FID.

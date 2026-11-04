@@ -1,0 +1,9 @@
+[fmnist_uniform_s2] step 0 heldout 1.28920 ema 1.28920 t=0s
+[fmnist_uniform_s2] step 100 heldout 0.14726 ema 1.18315 t=315s
+[fmnist_uniform_s2] step 200 heldout 0.08873 ema 0.97351 t=604s
+[fmnist_uniform_s2] probe@200: uniform=1.000 antithetic=1.252 paired_iid=1.323 stratified=0.745 sobol=0.734 importance=0.811 is_strat=0.538 strat_anti=0.708
+[fmnist_uniform_s2] step 300 heldout 0.07542 ema 0.76146 t=907s
+[fmnist_uniform_s2] step 400 heldout 0.06728 ema 0.57279 t=1228s
+[fmnist_uniform_s2] step 500 heldout 0.06385 ema 0.42148 t=1539s
+[fmnist_uniform_s2] step 600 heldout 0.06092 ema 0.31099 t=1844s
+[fmnist_uniform_s2] step 700 heldout 0.05952 ema 0.23556 t=2138s

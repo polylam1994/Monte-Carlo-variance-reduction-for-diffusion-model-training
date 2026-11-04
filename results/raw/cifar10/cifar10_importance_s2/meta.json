@@ -1,0 +1,66 @@
+{
+ "cfg": {
+  "dataset": "cifar10",
+  "data_root": "data/cifar10",
+  "estimator": "importance",
+  "seed": 2,
+  "T": 1000,
+  "model": {
+   "ch": 32,
+   "mult": [
+    1,
+    2,
+    2
+   ],
+   "nres": 2,
+   "attn_lowest": true,
+   "dropout": 0.0
+  },
+  "batch": 128,
+  "lr": 0.0002,
+  "warmup": 200,
+  "clip": 1.0,
+  "ema": 0.999,
+  "ema_warmup": true,
+  "hflip": true,
+  "amp": true,
+  "steps": 3000,
+  "eval_every": 250,
+  "log_every": 50,
+  "ckpt_every": 500,
+  "heldout_n": 2000,
+  "probe_pool": 4096,
+  "probe_at": [],
+  "probe_estimators": [
+   "uniform",
+   "antithetic",
+   "paired_iid",
+   "stratified",
+   "sobol",
+   "importance",
+   "is_strat",
+   "strat_anti"
+  ],
+  "probe_R": 48,
+  "decomp_at": [],
+  "decomp_bins": 20,
+  "decomp_reps": 3,
+  "fid_at": [
+   3000
+  ],
+  "fid_n": 10000,
+  "fid_batch": 1000,
+  "ddim_steps": 25,
+  "fid_noise_seed": 2024,
+  "out_dir": "results/raw/cifar10/cifar10_importance_s2",
+  "git": "210c407",
+  "run_id": "cifar10_importance_s2"
+ },
+ "n_params": 1540483,
+ "device": "cuda",
+ "gpu": "Tesla T4",
+ "torch": "2.11.0+cu130",
+ "python": "3.13.16",
+ "start_time": "2026-11-04T14:09:59",
+ "git": "210c407"
+}

@@ -1,0 +1,98 @@
+wrote src/mcvr/__init__.py 9c0316cd2d4c
+wrote src/mcvr/unet.py dff4a5487994
+wrote src/mcvr/diffusion.py 00a56429ab2a
+wrote src/mcvr/estimators.py 2ddb7986300b
+wrote src/mcvr/data.py 88a9c2b263cb
+wrote src/mcvr/probes.py 3b803326d30e
+wrote src/mcvr/train.py 9fdff4727563
+wrote src/mcvr/fid.py 258ca37ae16c
+wrote scripts/run_queue.py 076acc94ce32
+wrote scripts/prepare_cifar10.py 6955c6921e52
+wrote configs/cifar10.yaml 2984a5069272
+wrote configs/plans/cifar10_seeds12.json 68e45e1b6749
+$ nvidia-smi --query-gpu=name,memory.total --format=csv
+name, memory.total [MiB]
+Tesla T4, 15360 MiB
+Tesla T4, 15360 MiB
+$ pip install -q clean-fid==0.1.35 2>&1 | tail -1
+3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0] 2.11.0+cu130 0.26.0+cu130
+$ python scripts/prepare_cifar10.py data/cifar10
+train (50000, 32, 32, 3) mean 120.708 -> data/cifar10/cifar10_train.npz
+test (10000, 32, 32, 3) mean 121.529 -> data/cifar10/cifar10_test.npz
+downloading statistics to /usr/local/lib/python3.13/dist-packages/cleanfid/stats/cifar10_clean_train_32.npz
+data and FID assets ready
+$ python scripts/run_queue.py --plan configs/plans/cifar10_seeds12.json --gpus 0,1 --deadline 2450.0 --extra git=210c407
+[1] cifar10_uniform_s2 rc=0 580s
+[0] cifar10_strat_anti_s0 rc=0 819s
+[1] cifar10_importance_s1 rc=0 481s
+[0] cifar10_uniform_s1 rc=0 577s
+[1] cifar10_strat_anti_s1 rc=0 476s
+[0] cifar10_antithetic_s1 rc=0 501s
+[1] cifar10_antithetic_s2 rc=0 480s
+[0] cifar10_stratified_s1 rc=0 501s
+[1] cifar10_stratified_s2 rc=0 476s
+[1] deadline reached, not starting cifar10_strat_anti_s2
+[0] cifar10_importance_s2 rc=0 482s
+queue finished in 2880s
+$ tail -n 4 logs/*.log
+==> logs/cifar10_antithetic_s1.log <==
+[cifar10_antithetic_s1] step 2500 heldout 0.03882 ema 0.03886 t=232s
+[cifar10_antithetic_s1] step 2750 heldout 0.03832 ema 0.03826 t=255s
+[cifar10_antithetic_s1] step 3000 heldout 0.03776 ema 0.03773 t=277s
+[cifar10_antithetic_s1] FID@3000 = 146.71 (204s)
+
+==> logs/cifar10_antithetic_s2.log <==
+[cifar10_antithetic_s2] step 2500 heldout 0.03860 ema 0.03860 t=220s
+[cifar10_antithetic_s2] step 2750 heldout 0.03815 ema 0.03798 t=242s
+[cifar10_antithetic_s2] step 3000 heldout 0.03773 ema 0.03748 t=264s
+[cifar10_antithetic_s2] FID@3000 = 140.88 (197s)
+
+==> logs/cifar10_importance_s1.log <==
+[cifar10_importance_s1] step 2500 heldout 0.03784 ema 0.03805 t=224s
+[cifar10_importance_s1] step 2750 heldout 0.03749 ema 0.03749 t=245s
+[cifar10_importance_s1] step 3000 heldout 0.03728 ema 0.03702 t=267s
+[cifar10_importance_s1] FID@3000 = 135.39 (194s)
+
+==> logs/cifar10_importance_s2.log <==
+[cifar10_importance_s2] step 2500 heldout 0.03777 ema 0.03778 t=229s
+[cifar10_importance_s2] step 2750 heldout 0.03702 ema 0.03723 t=252s
+[cifar10_importance_s2] step 3000 heldout 0.03666 ema 0.03676 t=274s
+[cifar10_importance_s2] FID@3000 = 131.16 (188s)
+
+==> logs/cifar10_strat_anti_s0.log <==
+[cifar10_strat_anti_s0] step 2500 heldout 0.03868 ema 0.03848 t=223s
+[cifar10_strat_anti_s0] step 2750 heldout 0.03823 ema 0.03791 t=245s
+[cifar10_strat_anti_s0] step 3000 heldout 0.03751 ema 0.03744 t=267s
+[cifar10_strat_anti_s0] FID@3000 = 138.60 (152s)
+
+==> logs/cifar10_strat_anti_s1.log <==
+[cifar10_strat_anti_s1] step 2500 heldout 0.03894 ema 0.03869 t=221s
+[cifar10_strat_anti_s1] step 2750 heldout 0.03843 ema 0.03812 t=243s
+[cifar10_strat_anti_s1] step 3000 heldout 0.03786 ema 0.03761 t=265s
+[cifar10_strat_anti_s1] FID@3000 = 143.83 (192s)
+
+==> logs/cifar10_stratified_s1.log <==
+[cifar10_stratified_s1] step 2500 heldout 0.03867 ema 0.03856 t=234s
+[cifar10_stratified_s1] step 2750 heldout 0.03806 ema 0.03798 t=256s
+[cifar10_stratified_s1] step 3000 heldout 0.03795 ema 0.03749 t=279s
+[cifar10_stratified_s1] FID@3000 = 141.94 (202s)
+
+==> logs/cifar10_stratified_s2.log <==
+[cifar10_stratified_s2] step 2500 heldout 0.03843 ema 0.03831 t=220s
+[cifar10_stratified_s2] step 2750 heldout 0.03797 ema 0.03772 t=242s
+[cifar10_stratified_s2] step 3000 heldout 0.03754 ema 0.03721 t=264s
+[cifar10_stratified_s2] FID@3000 = 136.79 (192s)
+
+==> logs/cifar10_uniform_s1.log <==
+[cifar10_uniform_s1] step 2750 heldout 0.03833 ema 0.03798 t=251s
+[cifar10_uniform_s1] step 3000 heldout 0.03753 ema 0.03748 t=274s
+[cifar10_uniform_s1] probe@3000: uniform=1.000 antithetic=0.917 paired_iid=1.237 stratified=0.823 sobol=0.864 importance=1.033 is_strat=0.898 strat_anti=0.880
+[cifar10_uniform_s1] FID@3000 = 143.96 (200s)
+
+==> logs/cifar10_uniform_s2.log <==
+[cifar10_uniform_s2] step 2750 heldout 0.03813 ema 0.03769 t=242s
+[cifar10_uniform_s2] step 3000 heldout 0.03730 ema 0.03719 t=264s
+[cifar10_uniform_s2] probe@3000: uniform=1.000 antithetic=0.842 paired_iid=1.131 stratified=0.782 sobol=0.848 importance=1.025 is_strat=0.872 strat_anti=0.797
+[cifar10_uniform_s2] FID@3000 = 134.48 (207s)
+$ tar czf results_small.tgz --exclude='*.pt' results logs && ls -la results_small.tgz
+-rw-r--r-- 1 root root 1867203 Nov  4 14:17 results_small.tgz

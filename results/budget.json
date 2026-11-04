@@ -1,0 +1,28 @@
+{
+ "note": "Kaggle weekly GPU quota readings (get_accelerator_quota, seconds). Project usage = reading - baseline. The account's other notebooks were idle during the project, so these deltas are attributed to this project (upper bound).",
+ "budget_s": 7200,
+ "baseline_s": 63895.79,
+ "readings": [
+  {
+   "when": "2026-11-04 before any run",
+   "time_used_s": 63895.79
+  },
+  {
+   "when": "after smoke v1 (cancelled at 1500 s cap; CIFAR-10 download at ~90 kB/s, no training)",
+   "time_used_s": 65408.36
+  },
+  {
+   "when": "after smoke v2 (pipeline + timing)",
+   "time_used_s": 65787.88
+  },
+  {
+   "when": "after CIFAR-10 seed-0 session",
+   "time_used_s": 67727.37
+  },
+  {
+   "when": "after CIFAR-10 seeds 1-2 session (final; no further GPU use)",
+   "time_used_s": 70658.24
+  }
+ ],
+ "lost_to_failed_download_s": 1512.57
+}

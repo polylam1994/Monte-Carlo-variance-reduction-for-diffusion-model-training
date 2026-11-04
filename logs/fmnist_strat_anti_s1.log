@@ -1,0 +1,6 @@
+[fmnist_strat_anti_s1] step 0 heldout 1.07821 ema 1.07821 t=0s
+[fmnist_strat_anti_s1] step 100 heldout 0.14216 ema 0.98256 t=317s
+[fmnist_strat_anti_s1] step 200 heldout 0.08671 ema 0.80272 t=637s
+[fmnist_strat_anti_s1] step 300 heldout 0.07349 ema 0.62828 t=951s
+[fmnist_strat_anti_s1] step 400 heldout 0.06762 ema 0.47731 t=1248s
+[fmnist_strat_anti_s1] step 500 heldout 0.06444 ema 0.35770 t=1551s

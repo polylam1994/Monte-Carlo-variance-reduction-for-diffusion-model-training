@@ -1,0 +1,16 @@
+[cifar10_strat_anti_s0] step 0 heldout 1.16017 ema 1.16017 t=0s
+[cifar10_strat_anti_s0] step 250 heldout 0.08930 ema 0.09842 t=26s
+[cifar10_strat_anti_s0] step 500 heldout 0.05728 ema 0.05947 t=47s
+[cifar10_strat_anti_s0] step 750 heldout 0.04970 ema 0.05052 t=69s
+[cifar10_strat_anti_s0] step 1000 heldout 0.04586 ema 0.04644 t=90s
+[cifar10_strat_anti_s0] FID@1000 = 271.73 (198s)
+[cifar10_strat_anti_s0] step 1250 heldout 0.04407 ema 0.04395 t=112s
+[cifar10_strat_anti_s0] step 1500 heldout 0.04197 ema 0.04222 t=134s
+[cifar10_strat_anti_s0] step 1750 heldout 0.04098 ema 0.04095 t=156s
+[cifar10_strat_anti_s0] step 2000 heldout 0.04050 ema 0.03993 t=179s
+[cifar10_strat_anti_s0] FID@2000 = 189.32 (177s)
+[cifar10_strat_anti_s0] step 2250 heldout 0.03915 ema 0.03914 t=201s
+[cifar10_strat_anti_s0] step 2500 heldout 0.03868 ema 0.03848 t=223s
+[cifar10_strat_anti_s0] step 2750 heldout 0.03823 ema 0.03791 t=245s
+[cifar10_strat_anti_s0] step 3000 heldout 0.03751 ema 0.03744 t=267s
+[cifar10_strat_anti_s0] FID@3000 = 138.60 (152s)

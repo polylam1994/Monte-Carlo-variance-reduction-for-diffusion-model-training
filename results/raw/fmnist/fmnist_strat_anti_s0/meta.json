@@ -1,0 +1,56 @@
+{
+ "cfg": {
+  "dataset": "fmnist",
+  "data_root": "data/fmnist",
+  "estimator": "strat_anti",
+  "seed": 0,
+  "T": 1000,
+  "model": {
+   "ch": 32,
+   "mult": [
+    1,
+    2
+   ],
+   "nres": 1,
+   "attn_lowest": false,
+   "dropout": 0.0
+  },
+  "batch": 128,
+  "lr": 0.0002,
+  "warmup": 200,
+  "clip": 1.0,
+  "ema": 0.999,
+  "hflip": false,
+  "steps": 800,
+  "eval_every": 100,
+  "log_every": 25,
+  "ckpt_every": 200,
+  "heldout_n": 2000,
+  "probe_pool": 4096,
+  "probe_at": [],
+  "probe_estimators": [
+   "uniform",
+   "antithetic",
+   "paired_iid",
+   "stratified",
+   "sobol",
+   "importance",
+   "is_strat",
+   "strat_anti"
+  ],
+  "probe_R": 24,
+  "decomp_at": [],
+  "decomp_bins": 10,
+  "decomp_reps": 3,
+  "threads": 1,
+  "out_dir": "results/raw/fmnist/fmnist_strat_anti_s0",
+  "run_id": "fmnist_strat_anti_s0"
+ },
+ "n_params": 634273,
+ "device": "cpu",
+ "gpu": "x86_64",
+ "torch": "2.15.0+cu132",
+ "python": "3.13.18",
+ "start_time": "2026-11-04T13:03:32",
+ "git": "b61e5f89b87d29ff54c9c5f36752e52f20ccd97e"
+}
